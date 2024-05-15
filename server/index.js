@@ -1,11 +1,28 @@
-//import mongoose from "mongoose";
 import express from "express";
 import { config } from "dotenv";
-import mongoose from "mongoose";
+import mongoose, {startSession} from "mongoose";
+import userRoutes from "./routes/users.js"
+import systemRoutes from "./routes/system.js"
+import authRoutes from "./routes/auth.js"
+import ticketRoute from "./routes/tickets.js"
+import session from "express-session";
 
 config({ path: "../.env" });
 const app = express();
 app.use(express.json())
+app.use(
+  session({
+    secret: process.env.SECRET_TOKEN, 
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false },
+  })
+);
+
+app.use("/api/users", userRoutes)
+app.use("/api/system", systemRoutes)
+app.use("/api/auth", authRoutes)
+app.use("/api/tickets", ticketRoute)
 
 const PORT = process.env.PORT || "deployURL";
 

@@ -1,0 +1,1 @@
+// Kanske user.skins = [skins._id ?] OM man får flera av samma skin?
