@@ -9,7 +9,7 @@ export const loginUser = async (req, res) => {
         }
         const user = await User.findOne({username: req.body.username});
         if(!user){
-            res.status(400).json({error: "User doesn't exists"})
+            res.status(404).json({error: "User doesn't exists"})
             return;
         }
 
@@ -40,7 +40,7 @@ export const whoAmI = async (req, res) => {
             const latestUserData = await User.findOne({ _id: req.session.user._id }).populate('skins').exec();
             res.status(200).json(latestUserData);
         } else {
-            res.json('Not logged in');
+            res.status(404).json({ error: 'Not logged in'});
         }
     } catch (error) {
         res.status(400).json({ error: error.message });
