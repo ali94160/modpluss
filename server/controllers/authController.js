@@ -7,7 +7,7 @@ export const loginUser = async (req, res) => {
             res.status(400).json({ error: "Someone is already logged in"})
             return;
         }
-        const hash = crypto.createHmac('sha256', secret).update(req.body.password).digest('hex');
+         const hash = crypto.createHmac('sha256', process.env.SECRET_TOKEN).update(req.body.password).digest("hex");
 
         const user = await User.findOne({ username: req.body.username, password: hash });
         if(!user){

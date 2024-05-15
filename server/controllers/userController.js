@@ -24,7 +24,7 @@ export const createUser = async (req, res) => {
     try {
         const alreadyExists = await User.findOne({ username: req.body.username})
         if(alreadyExists){
-            res.status(404).json({error: "User already exist"})
+            res.status(409).json({error: "User already exist"})
             return;
         }
         const hash = crypto.createHmac('sha256', process.env.SECRET_TOKEN).update(req.body.password).digest("hex");
