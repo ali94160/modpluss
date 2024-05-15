@@ -5,6 +5,7 @@ import userRoutes from "./routes/users.js"
 import systemRoutes from "./routes/system.js"
 import authRoutes from "./routes/auth.js"
 import ticketRoute from "./routes/tickets.js"
+import skinRoutes from "./routes/skin.js"
 import session from "express-session";
 
 config({ path: "../.env" });
@@ -23,6 +24,7 @@ app.use("/api/users", userRoutes)
 app.use("/api/system", systemRoutes)
 app.use("/api/auth", authRoutes)
 app.use("/api/tickets", ticketRoute)
+app.use("/api/skins", skinRoutes)
 
 const PORT = process.env.PORT || "deployURL";
 

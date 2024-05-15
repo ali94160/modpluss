@@ -10,12 +10,12 @@ export const avatarSchema = new Schema({
 export const userSchema = new Schema({
   username: { type: String, required: true },
   password: { type: String, required: true },
-  country_id: { type: Number },
-  flag: { type: Number },
+  country_id: { type: Number, default: 0 },
+  flag: { type: Number, default: 0 },
   allTimeTickets: { type: Number, default: 0 },
   coins: { type: Number, default: 0 },
   modCases: { type: Number, default: 0 },
-  skins: { type: [skinSchema] },
+  skins: [{ type: Schema.Types.ObjectId, ref: 'Skin' }],
   avatar: { type: avatarSchema },
 });
 

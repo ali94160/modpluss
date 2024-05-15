@@ -35,10 +35,14 @@ export const logoutUser = async (req, res) => {
 }
 
 export const whoAmI = async (req, res) => {
-    if(req.session.user){
-        const user = {...req.session.user};
-        res.status(200).json(user);
-    } else {
-        res.json('');
+    try {
+        if (req.session.user) {
+            const latestUserData = await User.findOne({ _id: req.session.user._id }).populate('skins').exec();
+            res.status(200).json(latestUserData);
+        } else {
+            res.json('Not logged in');
+        }
+    } catch (error) {
+        res.status(400).json({ error: error.message });
     }
 }
