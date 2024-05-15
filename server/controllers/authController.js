@@ -7,13 +7,15 @@ export const loginUser = async (req, res) => {
             res.status(400).json({ error: "Someone is already logged in"})
             return;
         }
-        const user = await User.findOne({username: req.body.username});
+        const hash = crypto.createHmac('sha256', secret).update(req.body.password).digest('hex');
+
+        const user = await User.findOne({ username: req.body.username, password: hash });
         if(!user){
             res.status(404).json({error: "User doesn't exists"})
             return;
         }
-
         req.session.user = user;
+        console.log(user, " Logged in")
         res.status(200).json({ message: "Logged in successfully"});
     } catch (error) {
         res.status(400).json({ error: error.message });
