@@ -40,6 +40,7 @@ export const whoAmI = async (req, res) => {
     try {
         if (req.session.user) {
             const latestUserData = await User.findOne({ _id: req.session.user._id }).populate('skins').exec();
+            req.session.user = latestUserData;
             res.status(200).json(latestUserData);
         } else {
             res.status(404).json({ error: 'Not logged in'});

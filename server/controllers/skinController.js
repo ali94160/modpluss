@@ -40,7 +40,7 @@ export const buySkin = async (req, res) => {
     if (req.session.user.coins < req.body.price)
       return res
         .status(400)
-        .json({ error: "You don't have enough Mod Points" });
+        .json({ error: "You don't have enough Mod Coins" });
 
     req.session.user.coins -= req.body.price; // Deduct the price from the user's coins
 
