@@ -3,6 +3,7 @@
 // För hämtning vid store (allSkins kommer ha dubeletter, ta bara ut 1 av varje.) + mina skins OK med dubeltter, har olika _ids
 import { Skin } from "../models/Skin.js";
 import { User } from "../models/User.js";
+import { SystemGiveaway } from "../models/system.js";
 
 export const addSkin = async (req, res) => {
   try {
@@ -10,7 +11,7 @@ export const addSkin = async (req, res) => {
       return res.status(404).json({ error: "You don't have any Modcases" });
     }
     req.session.user.modCases -= 1;
-    let isModCoins = req.body.title === "Mod Points";
+    let isModCoins = req.body.title === "Mod Coins";
     if (isModCoins) {
       req.session.user.coins += req.body.price; // Add coins to the user's coins property
       const user = await User.findByIdAndUpdate(
@@ -28,6 +29,58 @@ export const addSkin = async (req, res) => {
       { new: true }
     );
     res.status(200).json(user);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+export const sendSkinToUser = async (req, res) => {
+  try {
+    const { reqUserId, reqSkin, reqGiveawayId } = req.body;
+    console.log(reqUserId, reqSkin, req.body, "===========================");
+    const giveaway1 = await SystemGiveaway.findById(reqGiveawayId);
+
+    if(!giveaway1.beenPaid) {
+      await SystemGiveaway.findOneAndUpdate({ _id: reqGiveawayId },
+      { beenPaid: true });
+    } else {
+      return res.status(400).json({ error: "The giveaway has already been paid" });
+    }
+  
+
+    let isModCoins = reqSkin.title === "Mod Coins";
+    let isModCase = reqSkin.title === "Mod Case";
+
+    let reqUser = await User.findOne({ _id: reqUserId });
+    if (!reqUser) return res.status(404).json({ error: "User not found" });
+    if (isModCoins) {
+      reqUser.coins += reqSkin.price; // price = antal från giveaway
+      const user = await User.findByIdAndUpdate(
+        { _id: reqUser._id },
+        { coins: reqUser.coins },
+        { new: true }
+      );
+      
+      return res.status(200).json(user);
+    }
+    if (isModCase) {
+      reqUser.modCases += reqSkin.price; // price = antal från giveaway
+      const user = await User.findByIdAndUpdate(
+        { _id: reqUser._id },
+        { modCases: reqUser.modCases },
+        { new: true }
+      );
+      return res.status(200).json(user);
+    }
+    // If it's not "Mod Coins" or "Mod Case", create a new skin and add it to the user's skins array
+    const skin = await Skin.create(reqSkin);
+    const user = await User.findByIdAndUpdate(
+      { _id: reqUser._id },
+      { $push: { skins: skin._id } },
+      { new: true }
+    );
+
+    res.status(200).json({ message: "Skin sent to user" });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }

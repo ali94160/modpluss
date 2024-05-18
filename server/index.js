@@ -16,7 +16,7 @@ app.use(
     secret: process.env.SECRET_TOKEN, 
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false },
+    cookie: { secure: false, maxAge: null },
   })
 );
 
@@ -25,6 +25,8 @@ app.use("/api/system", systemRoutes)
 app.use("/api/auth", authRoutes)
 app.use("/api/tickets", ticketRoute)
 app.use("/api/skins", skinRoutes)
+
+
 
 const PORT = process.env.PORT || "deployURL";
 
