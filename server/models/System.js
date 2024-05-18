@@ -18,6 +18,7 @@ const systemGiveawaySchema = new Schema({
   endDate: { type: Date, required: true },
   hasWinner: { type: Boolean, default: false },
   beenPaid: { type: Boolean, default: false },
+  isDone: { type: Boolean, default: false },
 });
 
 export const SystemMessage = mongoose.model(

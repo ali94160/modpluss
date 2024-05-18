@@ -46,8 +46,9 @@ export const createGiveaway = async (req, res) => {
 export const checkAndPickWinner = async (req, res) => {
   try {
     let giveaway = await SystemGiveaway.findOne({})
-      .sort({ _id: -1 }) // Sort by _id to get the latest entry
-      .exec();
+    .sort({ _id: -1 }) // Sort by _id to get the latest entry
+    .hint({ $natural: -1 }) // Force MongoDB to ignore cache and perform a fresh query
+    .exec();
 
     if(giveaway && giveaway.hasWinner){
       let winnerUsr = await User.findById({ _id: giveaway.winner }).exec();
@@ -65,17 +66,17 @@ export const checkAndPickWinner = async (req, res) => {
         const winnerId = giveaway.entries[randomIndex];
         giveaway.winner = winnerId;
         giveaway.hasWinner = true;
-        await giveaway.save();
-        let winnerUser = await User.findById({ _id: winnerId });
+        giveaway.isDone = true;
+        let winnerUser = await User.findById({ _id: winnerId }).exec();
+        await giveaway.save({ new: true })
         
-        console.log(`Winner selected for giveaway ${giveaway._id}: User ${winnerUser.username}`);
-        const sendSkinObj = {reqUserId: winnerId, reqSkin: giveaway.skin, reqGiveawayId: giveaway._id}
-        console.log(sendSkinObj, ' SendSkinObj?')
-        await sendSkinToUser(sendSkinObj);
+        console.log(`Winner selected for giveaway ${giveaway._id}: User ${winnerUser.username}`); 
+        console.log(giveaway , " ____ Give away ____")     
         return res.json({ timeLeft: null, giveaway: giveaway, winUser: winnerUser.username });
       } else {
-        if(!giveaway)
-          return;
+        if(!giveaway){
+          return
+        }
         // Calculate time left until the end of the giveaway
         const currentDate = new Date();
         const endDate = giveaway.endDate;
@@ -152,19 +153,52 @@ export const checkAndPickWinner = async (req, res) => {
 
   export const enterGiveaway = async (req, res) => {
     try {
-      if(!req.body.id || !req.session.user) return res.stats(404);
-      let ga = await SystemGiveaway.findOne({_id: req.body.id}).exec();
-      const alreadyEntered = ga.entries.find(f => f._id == req.session.user._id);
-      console.log(alreadyEntered, ga.entries , ' ENTERED entries, already?')
-      if(alreadyEntered) return res.status(200).json({ message: "Already entered"});
-
-      let giveaway = await SystemGiveaway.findOneAndUpdate({_id: req.body.id},
-        { $push: { entries: req.session.user._id } },
-        { new: true },
-      );
-      giveaway.save();
-      res.status(200).json({ message: "Entered"});
+      console.log(req.body, 'req body');
+      
+      if (!req.body.id || !req.session.user) {
+        return res.status(404).json({ message: "Not found" });
+      }
+  
+      // Find the latest giveaway
+      let ga = await SystemGiveaway.findOne().sort({ _id: -1 });
+      console.log(ga, 'ga');
+  
+      if (!ga) {
+        return res.status(404).json({ message: "Giveaway not found" });
+      }
+  
+      // Check if the user has already entered
+      const alreadyEntered = ga.entries.some(entry => entry.toString() === req.session.user._id.toString());
+      console.log(alreadyEntered, 'already entered?');
+  
+      if (alreadyEntered) {
+        return res.status(200).json({ message: "Already entered" });
+      } else {
+        console.log(">>>>>>>>>>>>>>>", alreadyEntered, "<<<<<<<<<<<<<<<<<<");
+  
+        // Add user to the giveaway entries
+        let giveaway = await SystemGiveaway.findOneAndUpdate(
+          { _id: req.body.id },
+          { $push: { entries: req.session.user._id } },
+          { new: true }
+        );
+  
+        console.log("NEW GIVEAWAY: ", giveaway);
+  
+        res.status(200).json({ message: "Entered" });
+      }
     } catch (error) {
+      console.error("Error: ", error);
       res.status(400).json({ error: error.message });
     }
   };
+  
+
+  export const getLastGiveaway = async (req, res) => {
+    const lastGiveaway = await SystemGiveaway.findOne().sort({ _id: -1 }).populate('winner');
+    let latest = await lastGiveaway.save({ new: true })
+    console.log("_________ LATEST ______", latest, " + ", lastGiveaway)
+    res.status(200).json(latest);
+  }
+
+  // add giveaway.hide > To hide it from the UI - new endpoint to set hide to true. default = false
