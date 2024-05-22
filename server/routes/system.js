@@ -1,6 +1,6 @@
 import express from "express";
 import { FLAGS, checkFlag } from "../middlewares/roles.js";
-import { createSystemMessage, getSystemMessage, removeSystemMessage, createGiveaway, stopGiveawayAndPickWinner, checkAndPickWinner, enterGiveaway, getLastGiveaway } from "../controllers/systemController.js";
+import { createSystemMessage, getSystemMessage, removeSystemMessage, createGiveaway, stopGiveawayAndPickWinner, checkAndPickWinner, enterGiveaway, getLastGiveaway, removeGiveaway } from "../controllers/systemController.js";
 const router = express.Router();
 
 // system message
@@ -14,5 +14,6 @@ router.post("/stop-giveaway", checkFlag([FLAGS.ADMIN, FLAGS.SUPER]), stopGiveawa
 router.get("/get-giveaway", checkAndPickWinner);
 router.get("/get-last-giveaway", getLastGiveaway);
 router.post("/enter-giveaway", enterGiveaway); 
+router.delete("/remove", checkFlag([FLAGS.ADMIN, FLAGS.SUPER]), removeGiveaway);
 
 export default router;

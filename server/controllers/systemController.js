@@ -97,11 +97,9 @@ export const checkAndPickWinner = async (req, res) => {
       }
     }
   } catch (error) {
-    console.error('Error in checkAndPickWinner:', error);
     if (res && res.status) {
       return res.status(500).json({ message: "Internal server error" });
     } else {
-      console.error('Response object is undefined:', res);
     }
   }
 };
@@ -153,38 +151,26 @@ export const checkAndPickWinner = async (req, res) => {
 
   export const enterGiveaway = async (req, res) => {
     try {
-      console.log(req.body, 'req body');
-      
       if (!req.body.id || !req.session.user) {
         return res.status(404).json({ message: "Not found" });
       }
   
       // Find the latest giveaway
       let ga = await SystemGiveaway.findOne().sort({ _id: -1 });
-      console.log(ga, 'ga');
-  
       if (!ga) {
         return res.status(404).json({ message: "Giveaway not found" });
       }
-  
       // Check if the user has already entered
       const alreadyEntered = ga.entries.some(entry => entry.toString() === req.session.user._id.toString());
-      console.log(alreadyEntered, 'already entered?');
-  
       if (alreadyEntered) {
         return res.status(200).json({ message: "Already entered" });
       } else {
-        console.log(">>>>>>>>>>>>>>>", alreadyEntered, "<<<<<<<<<<<<<<<<<<");
-  
         // Add user to the giveaway entries
         let giveaway = await SystemGiveaway.findOneAndUpdate(
           { _id: req.body.id },
           { $push: { entries: req.session.user._id } },
           { new: true }
         );
-  
-        console.log("NEW GIVEAWAY: ", giveaway);
-  
         res.status(200).json({ message: "Entered" });
       }
     } catch (error) {
@@ -199,6 +185,20 @@ export const checkAndPickWinner = async (req, res) => {
     let latest = await lastGiveaway.save({ new: true })
     console.log("_________ LATEST ______", latest, " + ", lastGiveaway)
     res.status(200).json(latest);
+  }
+
+  export const removeGiveaway = async (req, res) => {
+    try {
+      if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
+        console.log('Periodic check stopped');
+      }
+      await SystemGiveaway.deleteMany({});
+      res.status(200).json({ message: "Giveaway removed" });
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
   }
 
   // add giveaway.hide > To hide it from the UI - new endpoint to set hide to true. default = false

@@ -36,17 +36,11 @@ export const addSkin = async (req, res) => {
 
 export const sendSkinToUser = async (req, res) => {
   try {
-    const { reqUserId, reqSkin, reqGiveawayId } = req.body;
-    console.log(reqUserId, reqSkin, req.body, "===========================");
-    const giveaway1 = await SystemGiveaway.findById(reqGiveawayId);
+    const { reqUserId, reqSkin, reqGiveaway } = req.body;
 
-    if(!giveaway1.beenPaid) {
-      await SystemGiveaway.findOneAndUpdate({ _id: reqGiveawayId },
-      { beenPaid: true });
-    } else {
-      return res.status(400).json({ error: "The giveaway has already been paid" });
+    if(reqGiveaway.winner !== reqUserId) {
+      return res.status(404).json({ error: "You are not the winner." });
     }
-  
 
     let isModCoins = reqSkin.title === "Mod Coins";
     let isModCase = reqSkin.title === "Mod Case";

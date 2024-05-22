@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import { config } from "dotenv";
 import mongoose, {startSession} from "mongoose";
 import userRoutes from "./routes/users.js"
@@ -10,6 +11,16 @@ import session from "express-session";
 
 config({ path: "../.env" });
 const app = express();
+// Configure CORS
+const corsOptions = {
+  origin: '*',
+  optionsSuccessStatus: 200, // For legacy browser support
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  allowedHeaders: 'Content-Type,Authorization'
+};
+
+app.use(cors(corsOptions));
+
 app.use(express.json())
 app.use(
   session({
