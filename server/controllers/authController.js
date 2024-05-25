@@ -46,6 +46,7 @@ export const whoAmI = async (req, res) => {
             res.status(404).json({ error: 'Not logged in'});
         }
     } catch (error) {
+        if(!res) return console.log(error);
         res.status(400).json({ error: error.message });
     }
 }

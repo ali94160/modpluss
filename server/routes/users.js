@@ -27,7 +27,7 @@ router.patch("/avatar/change", updateAvatar);
 
 router.patch("/border/change-border", updateAvatarBorder);
 
-router.patch("/add/coins", addCoins);
+router.patch("/give-coins/auto", addCoins);
 
 
 export default router;

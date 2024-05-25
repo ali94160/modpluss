@@ -38,7 +38,7 @@ export const createUser = async (req, res) => {
             return;
         }
         const hash = crypto.createHmac('sha256', process.env.SECRET_TOKEN).update(req.body.password).digest("hex");
-        const user = await User.create({ username: req.body.username, password: hash})
+        const user = await User.create({ username: req.body.username, role_type: req.body.role_type, password: hash})
         // Logga in när vi skapat kontot.
         if(user) {
             req.session.user = user;
@@ -107,12 +107,11 @@ export const updateAvatarBorder = async (req, res) => {
 
 export const addCoins = async (req, res) => {
     try {
-        const { user, type} = req.body;
-        if(req.session.user.username !== user.username) return status(404).json({ error: "User not logged in"});
-
+        const { username, type } = req.body;
+        if(!username) return status(404).json({ error: "User not found"});
         if(type === MOD_TYPE.LIFT_REGIONBAN || type === MOD_TYPE.BANNED_USER || type === MOD_TYPE.SENT_NAMECHANGE || type === MOD_TYPE.SOLVED_TICKET) {
             const user = await User.findOneAndUpdate(
-                { _id: req.session.user._id },
+                { username: username },
                 { $inc: { coins: 20 } },
                 { new: true }
             );
@@ -120,7 +119,7 @@ export const addCoins = async (req, res) => {
         }
         if(type === MOD_TYPE.ACCEPTED_REPORT || type === MOD_TYPE.DENIED_REPORT || type === MOD_TYPE.LIFT_WARNING) {
             const user = await User.findOneAndUpdate(
-                { _id: req.session.user._id },
+                { username: username },
                 { $inc: { coins: 10 } },
                 { new: true }
             );
