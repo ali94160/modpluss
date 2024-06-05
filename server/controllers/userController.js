@@ -1,6 +1,8 @@
 import { User } from "../models/User.js";
 import mongoose from "mongoose";
 import crypto from "crypto"
+import { newDate } from "./systemController.js";
+import { SystemLog } from "../models/system.js";
 
 const MOD_TYPE = {
     SOLVED_TICKET: "SOLVED_TICKET",
@@ -37,12 +39,19 @@ export const createUser = async (req, res) => {
             res.status(409).json({error: "User already exist"})
             return;
         }
+        if(req.body.password.length < 3) return res.status(407).json({error: "Password too short"})
         const hash = crypto.createHmac('sha256', process.env.SECRET_TOKEN).update(req.body.password).digest("hex");
         const user = await User.create({ username: req.body.username, role_type: req.body.role_type, password: hash})
         // Logga in när vi skapat kontot.
         if(user) {
             req.session.user = user;
             res.status(200).json(user);
+
+            await SystemLog.create({
+                type: 0, 
+                text: `${user.username} has registred`, 
+                date: newDate()
+            });
         }
     } catch (error) {
         res.status(400).json({ error: error.message });
@@ -125,6 +134,68 @@ export const addCoins = async (req, res) => {
             );
             res.status(200).json(user);
         }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+}
+
+// top 10 tickets
+// Get all users
+export const getTopTickets = async (req, res) => {
+    try {
+        const top10 = await User.find({}, { password: 0, skins: 0 })
+        .sort({ allTimeTickets: -1 })
+        .limit(10);
+        res.status(200).json(top10);
+    } catch (error) {
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+};
+
+export const getTopReports = async (req, res) => {
+    try {
+        const top10 = await User.find({}, { password: 0, skins: 0 })
+        .sort({ allTimeReports: -1 })
+        .limit(10);
+        res.status(200).json(top10);
+    } catch (error) {
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+};
+
+export const addAvatarBorder = (req, res) => {
+    try {
+        if(!req.session.user) return res.status(404).json({ error: "User not logged in" });
+
+        const user = User.findOneAndUpdate(
+            { _id: req.session.user._id },
+            { $push: { avatar: req.body } },
+            { new: true }
+        );
+        res.status(200).json(user);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+}
+
+export const setHandleRole = async (req, res) => {
+    try {
+        console.log(req.body, ' req body????????????????');
+        logg
+        // Await the User.findOneAndUpdate call
+        const user = await User.findOneAndUpdate(
+            { _id: req.session.user._id },
+            { handleRole: req.body.nr },
+            { new: true }
+        ).hint({ $natural: -1 }) // Force MongoDB to ignore cache and perform a fresh query
+        
+        await SystemLog.create({
+            type: 0, 
+            text: `${req.session.user.username} set role team number to: ${req.body.nr}`, 
+            date: newDate()
+          });
+          
+        res.status(200).json(user);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

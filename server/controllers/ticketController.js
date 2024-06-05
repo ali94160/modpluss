@@ -37,14 +37,35 @@ export const updateTicket = async (req, res) => {
 };
 
 export const addNewTicket = async (req, res) => {
-    try {   
-        if(!req.session.user) return res.status(404).json({error: "User not logged in"})
-        await Ticket.create(req.body)
-        await User.findByIdAndUpdate({ _id: req.session.user._id}, {
-            allTimeTickets: req.session.user.allTimeTickets + 1
-        })
-        res.status(200).json({ message: "Ticket has been added" });
-    } catch (error) {
-        res.status(400).json({ error: error.message });
-    }
+  try {   
+      await Ticket.create(req.body);
+      await User.findOneAndUpdate(
+          { username: req.body.handler }, 
+          { $inc: { allTimeTickets: 1 } }
+      );
+      console.log(req.body, ' req body')
+      res.status(200).json({ message: "Ticket has been added" });
+  } catch (error) {
+      res.status(400).json({ error: error.message });
+  }
+}
+
+export const removeAllTickets = async (req, res) => {
+  try {
+    const result = await Ticket.deleteMany({});
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const getAllTicketsCount = async (req, res) => {
+  try {
+      if(!req.session.user){ return res.status(404).json({ error: "User not logged in" }); }
+
+      const allTickets = await Ticket.find({});
+      res.status(200).json(allTickets.length);
+  } catch (error) {
+      res.status(500).json({ error: error.message }); 
+  }
 }

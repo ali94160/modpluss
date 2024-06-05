@@ -3,13 +3,15 @@
 // För hämtning vid store (allSkins kommer ha dubeletter, ta bara ut 1 av varje.) + mina skins OK med dubeltter, har olika _ids
 import { Skin } from "../models/Skin.js";
 import { User } from "../models/User.js";
-import { SystemGiveaway } from "../models/system.js";
+import { SystemLog } from "../models/system.js";
+import { newDate } from "./systemController.js";
 
 export const addSkin = async (req, res) => {
   try {
     if (req.session.user.modCases <= 0) {
       return res.status(404).json({ error: "You don't have any Modcases" });
     }
+
     req.session.user.modCases -= 1;
     let isModCoins = req.body.title === "Mod Coins";
     if (isModCoins) {
@@ -19,6 +21,11 @@ export const addSkin = async (req, res) => {
         { coins: req.session.user.coins, modCases: req.session.user.modCases },
         { new: true }
       );
+      await SystemLog.create({ //logging
+        type: 0, 
+        text: `${req.session.user.username} just got a drop from Mod Case: x${req.body.price} ${req.body.title}`, 
+        date: newDate()
+      });
       return res.status(200).json(user);
     }
     // If it's not "Mod Points", create a new skin and add it to the user's skins array
@@ -28,6 +35,11 @@ export const addSkin = async (req, res) => {
       { $push: { skins: skin._id }, modCases: req.session.user.modCases },
       { new: true }
     );
+    await SystemLog.create({ //logging
+      type: 0, 
+      text: `${req.session.user.username} just got a drop from Mod Case: ${skin.title}`, 
+      date: newDate()
+    });
     res.status(200).json(user);
   } catch (error) {
     res.status(400).json({ error: error.message });

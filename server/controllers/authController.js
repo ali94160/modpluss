@@ -1,5 +1,7 @@
 import { User } from "../models/User.js";
 import crypto from "crypto"
+import { SystemLog } from "../models/system.js";
+import { newDate } from "./systemController.js";
 
 export const loginUser = async (req, res) => {
     try {
@@ -15,8 +17,13 @@ export const loginUser = async (req, res) => {
             return;
         }
         req.session.user = user;
-        console.log(user, " Logged in")
         res.status(200).json({ message: "Logged in successfully"});
+
+        await SystemLog.create({
+            type: 0, 
+            text: `${req.session.user.username} logged in`, 
+            date: newDate()
+        });
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
@@ -25,6 +32,12 @@ export const loginUser = async (req, res) => {
 export const logoutUser = async (req, res) => {
     try {
         if(req.session.user){
+            await SystemLog.create({
+                type: 0, 
+                text: `${req.session.user.username} logged out`, 
+                date: newDate()
+            });
+
             req.session.destroy();
             res.status(200).json({message: "Logged out"})
         } 

@@ -8,3 +8,13 @@ const canceledMatchSchema = new Schema({
 });
 
 export const CanceledMatch = mongoose.model('CanceledMatch', canceledMatchSchema);
+
+const smurfLogSchema = new Schema({
+    userId:   { type: Number, required: true },
+    changedBy: { type: String, required: true },
+    username: { type: String },
+    text:     { type: String, required: true },
+    date:     { type: Date, default: Date.now },
+});
+
+export const SmurfLog = mongoose.model('SmurfLog', smurfLogSchema);

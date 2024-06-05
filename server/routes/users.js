@@ -1,9 +1,13 @@
 import express from "express";
 import {
+  addAvatarBorder,
   addCoins,
   createUser,
+  getTopReports,
+  getTopTickets,
   getUser,
   getUsers,
+  setHandleRole,
   updateAllUsers,
   updateAvatar,
   updateAvatarBorder,
@@ -27,7 +31,13 @@ router.patch("/avatar/change", updateAvatar);
 
 router.patch("/border/change-border", updateAvatarBorder);
 
+router.patch("/border/add/border", addAvatarBorder)
+
 router.patch("/give-coins/auto", addCoins);
 
+router.get("/top/tickets", getTopTickets);
 
+router.get("/top/reports", getTopReports);
+
+router.patch("/handle/role/new", setHandleRole);
 export default router;

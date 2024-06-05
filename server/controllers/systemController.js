@@ -1,6 +1,36 @@
 import { User } from "../models/User.js";
-import { SystemMessage, SystemGiveaway } from "../models/system.js";
+import { SystemMessage, SystemGiveaway, SystemLog } from "../models/system.js";
 import { addSkin, sendSkinToUser } from "./skinController.js";
+
+// Date formatter:
+export function newDate() {
+  const date = new Date();
+  // Options to format only the date
+  const dateOptions = {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  };
+  // Options to format the time
+  const timeOptions = {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  };
+  const formattedDateParts = date.toLocaleDateString(undefined, dateOptions).split(/\D/);
+  let year, month, day;
+  
+  if (formattedDateParts[0].length === 4) {
+    [year, month, day] = formattedDateParts;
+  } else {
+    [day, month, year] = formattedDateParts;
+  }
+  const formattedDateString = `${year}/${month}/${day}`;
+  // Format the time using the user's local settings
+  const formattedTimeString = date.toLocaleTimeString(undefined, timeOptions);
+  return `${formattedDateString} ${formattedTimeString}`;
+}
 
 let intervalId = null;
 export const createSystemMessage = async (req, res) => {
@@ -69,9 +99,6 @@ export const checkAndPickWinner = async (req, res) => {
         giveaway.isDone = true;
         let winnerUser = await User.findById({ _id: winnerId }).exec();
         await giveaway.save({ new: true })
-        
-        console.log(`Winner selected for giveaway ${giveaway._id}: User ${winnerUser.username}`); 
-        console.log(giveaway , " ____ Give away ____")     
         return res.json({ timeLeft: null, giveaway: giveaway, winUser: winnerUser.username });
       } else {
         if(!giveaway){
@@ -135,6 +162,11 @@ export const checkAndPickWinner = async (req, res) => {
         await giveaway.save();
         const winnerUser = await User.findById(winnerId).exec();
         console.log(`Winner selected for giveaway ${giveaway._id}: User ${winnerUser.username}`);
+        if (intervalId) {
+          clearInterval(intervalId);
+          intervalId = null;
+          console.log('Periodic check stopped');
+        }
       } else {
         console.log('No entries in the giveaway to pick a winner from');
       }
@@ -171,9 +203,15 @@ export const checkAndPickWinner = async (req, res) => {
           { $push: { entries: req.session.user._id } },
           { new: true }
         );
+        await SystemLog.create({ type: 0, text: `${req.session.user.username} has joined the giveaway: ${giveaway._id}`, date: newDate()})
         res.status(200).json({ message: "Entered" });
       }
     } catch (error) {
+      if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
+        console.log('Periodic check stopped');
+      }
       console.error("Error: ", error);
       res.status(400).json({ error: error.message });
     }
@@ -201,4 +239,17 @@ export const checkAndPickWinner = async (req, res) => {
     }
   }
 
-  // add giveaway.hide > To hide it from the UI - new endpoint to set hide to true. default = false
+  export const getSystemLogs = async (req, res) => {
+    const systemLogs = await SystemLog.find({});
+    res.status(200).json(systemLogs);
+  }
+
+  export const addLogging = async (req, res) => { 
+    try {
+      console.log(" WATTT ", req.body)
+        await SystemLog.create(req.body);
+        await res.status(200);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+}

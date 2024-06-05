@@ -21,6 +21,12 @@ const systemGiveawaySchema = new Schema({
   isDone: { type: Boolean, default: false },
 });
 
+const systemLogSchema = new Schema({
+  type: { type: Number }, // 0 = info, 1 = error
+  text: { type: String },
+  date: { type: String }
+});
+
 export const SystemMessage = mongoose.model(
   "SystemMessage",
   systemMessageSchema
@@ -30,3 +36,8 @@ export const SystemGiveaway = mongoose.model(
     "SystemGiveaway",
     systemGiveawaySchema
   );
+
+export const SystemLog = mongoose.model(
+  "SystemLog",
+  systemLogSchema
+);

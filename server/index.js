@@ -7,7 +7,8 @@ import systemRoutes from "./routes/system.js";
 import authRoutes from "./routes/auth.js";
 import ticketRoute from "./routes/tickets.js";
 import skinRoutes from "./routes/skin.js";
-import canceledMatchRoutes from "./routes/canceledMatches.js";
+import esportalLogs from "./routes/esportalLog.js";
+import reportRoutes from "./routes/report.js";
 import session from "express-session";
 
 config({ path: "../.env" });
@@ -38,7 +39,8 @@ app.use("/api/system", systemRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/tickets", ticketRoute);
 app.use("/api/skins", skinRoutes);
-app.use("/api/canceled-matches", canceledMatchRoutes);
+app.use("/api/esportal-logs", esportalLogs);
+app.use("/api/reports", reportRoutes)
 
 const PORT = process.env.PORT || "deployURL";
 
