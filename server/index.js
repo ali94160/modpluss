@@ -42,10 +42,13 @@ app.use("/api/skins", skinRoutes);
 app.use("/api/esportal-logs", esportalLogs);
 app.use("/api/reports", reportRoutes)
 
-const PORT = "https://modpluss-1.onrender.com" || process.env.PORT;
+const PORT = process.env.PORT;
 
 mongoose.connect(process.env.MONGODB_URI).then(() => {
-  app.listen(PORT, () => {
+  app.listen(PORT, '0.0.0.0', () => {
     console.log("Connected to database & listening on port: ", PORT);
   });
+}).catch(error => {
+  console.error("Database connection error:", error);
+  process.exit(1);
 });
