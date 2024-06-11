@@ -66,6 +66,10 @@ export const createGiveaway = async (req, res) => {
         if(!req.session.user) return res.status(400).json({ error: "Not logged in" });
         const giveaway = await SystemGiveaway.create(req.body);
         await res.status(200).json(giveaway);
+        await SystemLog.create({ 
+          type: 0, 
+          text:  `${req.session.user.username} created a giveaway: ${giveaway.skin.title} ${giveaway.skin.title === "Mod Case" ? "x" + giveaway.skin.price : giveaway.skin.title === "Mod Coins" ? "x" +giveaway.skin.price : ""}`, 
+          date: newDate()})
         startChecking();
         
     } catch (error) {
@@ -233,6 +237,7 @@ export const checkAndPickWinner = async (req, res) => {
         console.log('Periodic check stopped');
       }
       await SystemGiveaway.deleteMany({});
+      await SystemLog.create({ type: 0, text: `${req.session.user.username} has removed the giveaways`, date: newDate()})
       res.status(200).json({ message: "Giveaway removed" });
     } catch (error) {
       res.status(400).json({ error: error.message });

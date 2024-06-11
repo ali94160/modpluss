@@ -12,6 +12,7 @@ import {
   updateAvatar,
   updateAvatarBorder,
   updateUser,
+  updateUserQueuePermission,
 } from "../controllers/userController.js";
 import { FLAGS, checkFlag } from "../middlewares/roles.js";
 
@@ -26,6 +27,7 @@ router.post("/", createUser);
 
 router.patch("/gift/all-users", checkFlag([FLAGS.SUPER]), updateAllUsers);
 router.patch("/:id", checkFlag([FLAGS.SUPER]), updateUser);
+router.patch("/queuePerm/:id", checkFlag([FLAGS.SUPER, FLAGS.ADMIN]), updateUserQueuePermission);
 
 router.patch("/avatar/change", updateAvatar);
 

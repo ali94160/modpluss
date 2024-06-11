@@ -71,6 +71,19 @@ export const updateUser = async (req, res) => {
     res.status(200).json(user);
 }
 
+// update a users queue permission
+export const updateUserQueuePermission = async (req, res) => {
+    const { id } = req.params;
+    if(!mongoose.Types.ObjectId.isValid(id)) return res.status(404).json({error: "User with Id does not exist"})
+
+    const user = await User.findOneAndUpdate({_id: id}, {
+        ...req.body
+    }, { new: true })
+
+    if(!user) return res.status(404).json({error: "User doesn't exist"})
+    res.status(200).json(user);
+}
+
 // update all users
 export const updateAllUsers = async (req, res) => {
     try {
@@ -102,10 +115,10 @@ export const updateAvatar = async (req, res) => {
 export const updateAvatarBorder = async (req, res) => {
     try {
         if(!mongoose.Types.ObjectId.isValid(req.session.user._id)) return res.status(404).json({error: "User with Id does not exist"})
-            
+            console.log(req.body.border, ' REQ BODY BORDER!!!')
         const user = await User.findOneAndUpdate(
             { _id: req.session.user._id },
-            { 'avatar.borderClass': req.body.border.src },
+            { 'avatar.borderClass': req.body.border },
             { new: true }
         );
         res.status(200).json(user);
@@ -163,13 +176,17 @@ export const getTopReports = async (req, res) => {
     }
 };
 
-export const addAvatarBorder = (req, res) => {
+export const addAvatarBorder = async (req, res) => { // buying avatarBorder
     try {
         if(!req.session.user) return res.status(404).json({ error: "User not logged in" });
+        console.log(req.body, ' req body!')
+        if(req.session.user.coins < req.body.price) return res.status(400).json({ error: "You don't have enough Mod Coins" });
+        req.session.user.coins -= req.body.price;
 
-        const user = User.findOneAndUpdate(
+        const user = await User.findOneAndUpdate(
             { _id: req.session.user._id },
-            { $push: { avatar: req.body } },
+            { $push: { avatars: req.body },
+            coins: req.session.user.coins, },
             { new: true }
         );
         res.status(200).json(user);
@@ -181,7 +198,6 @@ export const addAvatarBorder = (req, res) => {
 export const setHandleRole = async (req, res) => {
     try {
         console.log(req.body, ' req body????????????????');
-        logg
         // Await the User.findOneAndUpdate call
         const user = await User.findOneAndUpdate(
             { _id: req.session.user._id },

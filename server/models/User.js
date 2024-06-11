@@ -13,6 +13,7 @@ export const userSchema = new Schema({
   allTimeReports: { type: Number, default: 0 },
   coins: { type: Number, default: 0 },
   modCases: { type: Number, default: 1 },
+  queue: { type: Number, default: 0},
   skins: [{ type: Schema.Types.ObjectId, ref: "Skin" }],
   avatars: {
     type: [
@@ -24,7 +25,7 @@ export const userSchema = new Schema({
     ],
     default: [
       {
-        title: "Avatar | Classic",
+        title: "Frame | Classic",
         price: 0,
         borderClass: "avatar-0",
       },
