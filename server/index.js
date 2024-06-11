@@ -42,7 +42,7 @@ app.use("/api/skins", skinRoutes);
 app.use("/api/esportal-logs", esportalLogs);
 app.use("/api/reports", reportRoutes)
 
-const PORT = process.env.PORT || "https://modpluss-1.onrender.com";
+const PORT = "https://modpluss-1.onrender.com" || process.env.PORT;
 
 mongoose.connect(process.env.MONGODB_URI).then(() => {
   app.listen(PORT, () => {
