@@ -245,8 +245,21 @@ export const checkAndPickWinner = async (req, res) => {
   }
 
   export const getSystemLogs = async (req, res) => {
-    const systemLogs = await SystemLog.find({});
-    res.status(200).json(systemLogs);
+    try {
+      const systemLogs = await SystemLog.find({});
+      res.status(200).json(systemLogs);
+    } catch (error) {
+      res.status(500);
+    }
+  }
+
+  export const clearSystemLogs = async (req, res) => {
+    try {
+      await SystemLog.deleteMany({});
+      res.status(200).json({ message: "System logs cleared" });
+    } catch (error) {
+      res.status(500);
+    }
   }
 
   export const addLogging = async (req, res) => { 
