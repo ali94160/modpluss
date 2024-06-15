@@ -16,9 +16,13 @@ const MOD_TYPE = {
 
 // Get all users
 export const getUsers = async (req, res) => {
-    const users = await User.find({}, { password: 0 }); // { coins: 10 } ="WHERE" - hämtar alla users med coins = 10.
-    res.status(200).json(users)
-}
+    try {
+        const users = await User.find({}, { password: 0 }).populate('skins');
+        res.status(200).json(users);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
 
 // get single user
 export const getUser = async (req, res) => {
