@@ -79,6 +79,7 @@ export const createGiveaway = async (req, res) => {
 }
 
 export const checkAndPickWinner = async (req, res) => {
+  let HAS_WINNER = false;
   try {
     let giveaway = await SystemGiveaway.findOne({})
       .sort({ _id: -1 }) // Sort by _id to get the latest entry
@@ -101,12 +102,12 @@ export const checkAndPickWinner = async (req, res) => {
         giveaway.winner = winnerId;
         giveaway.hasWinner = true;
         giveaway.isDone = true;
-
+        HAS_WINNER = true;
         await giveaway.save(); // Save the giveaway state before proceeding
 
         let winnerUser = await User.findById({ _id: winnerId }).exec();
         if (!winnerUser) return res.status(404).json({ error: "User not found" });
-
+        if(!HAS_WINNER) return res.status(400).json({ error: "Winner already found" });
         // SEND PRIZE
         let isModCoins = giveaway.skin.title === "Mod Coins";
         let isModCase = giveaway.skin.title === "Mod Case";
