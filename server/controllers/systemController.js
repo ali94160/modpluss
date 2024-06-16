@@ -104,7 +104,7 @@ export const checkAndPickWinner = async (req, res) => {
         giveaway.isDone = true;
         let winnerUser = await User.findById({ _id: winnerId }).exec();
         await giveaway.save({ new: true })
-
+        console.log(winnerUser, ' WINNER USER PICKnUpdate')
         // SEND SKIN
         let isModCoins = giveaway.skin.title === "Mod Coins";
         let isModCase = giveaway.skin.title === "Mod Case";
@@ -117,7 +117,6 @@ export const checkAndPickWinner = async (req, res) => {
             { coins: winnerUser.coins },
             { new: true }
           );
-          return res.status(200).json(user);
         }
         if (isModCase) {
           winnerUser.modCases += giveaway.skin.price; // price = antal från giveaway
@@ -126,7 +125,6 @@ export const checkAndPickWinner = async (req, res) => {
             { modCases: winnerUser.modCases },
             { new: true }
           );
-          return res.status(200).json(user);
         }
         // If it's not "Mod Coins" or "Mod Case", create a new skin and add it to the user's skins array
         const skin = await Skin.create(giveaway.skin);
