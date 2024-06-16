@@ -103,6 +103,11 @@ export const checkAndPickWinner = async (req, res) => {
         giveaway.isDone = true;
         let winnerUser = await User.findById({ _id: winnerId }).exec();
         await giveaway.save({ new: true })
+        await SystemLog.create({
+            type: 0, 
+            text: `userID: ${giveaway.winner} won the giveaway: ${giveaway.skin.title} ${giveaway.skin.title === "Mod Case" ? "x" + giveaway.skin.price : giveaway.skin.title === "Mod Coins" ? "x" + giveaway.skin.price : ""}`,
+            date: newDate(), 
+        })
         return res.json({ timeLeft: null, giveaway: giveaway, winUser: winnerUser.username });
       } else {
         if(!giveaway){

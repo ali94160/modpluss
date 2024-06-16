@@ -3,11 +3,18 @@ import { User } from "../models/User.js";
 
 export const addReport = async (req, res) => {
     try {
-        const report = await Report.create(req.body);
-          await User.findOneAndUpdate(
-          { username: req.body.handler }, 
-          { $inc: { allTimeReports: 1 } }
-      );
+        // Find and update the report if it exists, or create a new one if it doesn't
+        const report = await Report.findOneAndUpdate(
+            { reportId: req.body.reportId }, // Find report by reportId
+            req.body, // Update the report with the new data
+            { new: true, upsert: true } // Create a new document if none exists
+        );
+
+        // Update the user's allTimeReports count
+        await User.findOneAndUpdate(
+            { username: reportData.handler },
+            { $inc: { allTimeReports: 1 } }
+        );
         res.status(200).json(report);
     } catch (error) {
         return res.status(500).json({ error: error.message });
