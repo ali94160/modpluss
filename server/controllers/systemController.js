@@ -107,7 +107,7 @@ export const checkAndPickWinner = async (req, res) => {
 
         let winnerUser = await User.findById({ _id: winnerId }).exec();
         if (!winnerUser) return res.status(404).json({ error: "User not found" });
-        if(!HAS_WINNER) return res.status(400).json({ error: "Winner already found" });
+        if(HAS_WINNER) return res.status(400).json({ error: "Winner already found" });
         // SEND PRIZE
         let isModCoins = giveaway.skin.title === "Mod Coins";
         let isModCase = giveaway.skin.title === "Mod Case";
