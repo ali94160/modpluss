@@ -47,6 +47,7 @@ export const addSkin = async (req, res) => {
 };
 
 export const sendSkinToUser = async (req, res) => {
+  console.log("TRIGGERED ____ SEND ___ SKIN ___ TO USER___")
   try {
     const { reqUserId, reqSkin, reqGiveaway } = req.body;
 
