@@ -81,11 +81,11 @@ export const createGiveaway = async (req, res) => {
 export const checkAndPickWinner = async (req, res) => {
   try {
     let giveaway = await SystemGiveaway.findOne({})
-    .sort({ _id: -1 }) // Sort by _id to get the latest entry
-    .hint({ $natural: -1 }) // Force MongoDB to ignore cache and perform a fresh query
-    .exec();
+      .sort({ _id: -1 }) // Sort by _id to get the latest entry
+      .hint({ $natural: -1 }) // Force MongoDB to ignore cache and perform a fresh query
+      .exec();
 
-    if(giveaway && giveaway.hasWinner){
+    if (giveaway && giveaway.hasWinner) {
       let winnerUsr = await User.findById({ _id: giveaway.winner }).exec();
       if (intervalId) {
         clearInterval(intervalId);
@@ -94,7 +94,6 @@ export const checkAndPickWinner = async (req, res) => {
       }
       return res.json({ timeLeft: null, giveaway: giveaway, winUser: winnerUsr.username });
     } else {
-      
       let now = new Date();
       if (giveaway && !giveaway.isDone && !giveaway.hasWinner && now >= giveaway.endDate && giveaway.entries.length > 0) {
         const randomIndex = Math.floor(Math.random() * giveaway.entries.length);
@@ -102,29 +101,29 @@ export const checkAndPickWinner = async (req, res) => {
         giveaway.winner = winnerId;
         giveaway.hasWinner = true;
         giveaway.isDone = true;
+
+        await giveaway.save(); // Save the giveaway state before proceeding
+
         let winnerUser = await User.findById({ _id: winnerId }).exec();
         if (!winnerUser) return res.status(404).json({ error: "User not found" });
-        await giveaway.save({ new: true });
-        console.log(winnerUser, ' WINNER USER PICKnUpdate');
-        
-        // SEND SKIN
+
+        // SEND PRIZE
         let isModCoins = giveaway.skin.title === "Mod Coins";
         let isModCase = giveaway.skin.title === "Mod Case";
-        
+
         if (isModCoins) {
-          const user = await User.findByIdAndUpdate(
+          await User.findByIdAndUpdate(
             { _id: winnerUser._id },
             { $inc: { coins: giveaway.skin.price } },
             { new: true }
           );
         } else if (isModCase) {
-          const user = await User.findByIdAndUpdate(
+          await User.findByIdAndUpdate(
             { _id: winnerUser._id },
             { $inc: { modCases: giveaway.skin.price } },
             { new: true }
           );
         } else {
-          // If it's not "Mod Coins" or "Mod Case", create a new skin and add it to the user's skins array
           const skin = await Skin.create(giveaway.skin);
           await User.findByIdAndUpdate(
             { _id: winnerUser._id },
@@ -132,18 +131,18 @@ export const checkAndPickWinner = async (req, res) => {
             { new: true }
           );
         }
-        
-        // _____
 
+        // Log the win
         await SystemLog.create({
-            type: 0, 
-            text: `userID: ${giveaway.winner} won the giveaway: ${giveaway.skin.title} ${giveaway.skin.title === "Mod Case" ? "x" + giveaway.skin.price : giveaway.skin.title === "Mod Coins" ? "x" + giveaway.skin.price : ""}`,
-            date: newDate(), 
-        })
+          type: 0, 
+          text: `userID: ${giveaway.winner} won the giveaway: ${giveaway.skin.title} ${giveaway.skin.title === "Mod Case" ? "x" + giveaway.skin.price : giveaway.skin.title === "Mod Coins" ? "x" + giveaway.skin.price : ""}`,
+          date: new Date(), 
+        });
+
         return res.json({ timeLeft: null, giveaway: giveaway, winUser: winnerUser.username });
       } else {
-        if(!giveaway){
-          return
+        if (!giveaway) {
+          return;
         }
         // Calculate time left until the end of the giveaway
         const currentDate = new Date();
@@ -161,16 +160,18 @@ export const checkAndPickWinner = async (req, res) => {
           minutesLeft: minutesLeft % 60,
           secondsLeft: secondsLeft % 60
         };
-        return res.json({timeLeft: timeLeftObject, giveaway: giveaway, winUser: null })
+        return res.json({ timeLeft: timeLeftObject, giveaway: giveaway, winUser: null });
       }
     }
   } catch (error) {
     if (res && res.status) {
       return res.status(500).json({ message: "Internal server error" });
     } else {
+      console.error(error);
     }
   }
 };
+
 
   const startChecking = () => {
     if (!intervalId) {
