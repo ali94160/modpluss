@@ -125,14 +125,15 @@ export const checkAndPickWinner = async (req, res) => {
             { modCases: winnerUser.modCases },
             { new: true }
           );
+        } else {
+          // If it's not "Mod Coins" or "Mod Case", create a new skin and add it to the user's skins array
+          const skin = await Skin.create(giveaway.skin);
+          await User.findByIdAndUpdate(
+            { _id: winnerUser._id },
+            { $push: { skins: skin._id } },
+            { new: true }
+          );
         }
-        // If it's not "Mod Coins" or "Mod Case", create a new skin and add it to the user's skins array
-        const skin = await Skin.create(giveaway.skin);
-        await User.findByIdAndUpdate(
-          { _id: winnerUser._id },
-          { $push: { skins: skin._id } },
-          { new: true }
-        );
         // _____
 
         await SystemLog.create({
