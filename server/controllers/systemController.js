@@ -96,33 +96,31 @@ export const checkAndPickWinner = async (req, res) => {
     } else {
       
       let now = new Date();
-      if (giveaway && !giveaway.hasWinner && now >= giveaway.endDate && giveaway.entries.length > 0) {
+      if (giveaway && !giveaway.isDone && !giveaway.hasWinner && now >= giveaway.endDate && giveaway.entries.length > 0) {
         const randomIndex = Math.floor(Math.random() * giveaway.entries.length);
         const winnerId = giveaway.entries[randomIndex];
         giveaway.winner = winnerId;
         giveaway.hasWinner = true;
         giveaway.isDone = true;
         let winnerUser = await User.findById({ _id: winnerId }).exec();
-        await giveaway.save({ new: true })
-        console.log(winnerUser, ' WINNER USER PICKnUpdate')
+        if (!winnerUser) return res.status(404).json({ error: "User not found" });
+        await giveaway.save({ new: true });
+        console.log(winnerUser, ' WINNER USER PICKnUpdate');
+        
         // SEND SKIN
         let isModCoins = giveaway.skin.title === "Mod Coins";
         let isModCase = giveaway.skin.title === "Mod Case";
-    
-        if (!winnerUser) return res.status(404).json({ error: "User not found" });
+        
         if (isModCoins) {
-          winnerUser.coins += giveaway.skin.price; // price = antal från giveaway
           const user = await User.findByIdAndUpdate(
             { _id: winnerUser._id },
-            { coins: winnerUser.coins },
+            { $inc: { coins: giveaway.skin.price } },
             { new: true }
           );
-        }
-        if (isModCase) {
-          winnerUser.modCases += giveaway.skin.price; // price = antal från giveaway
+        } else if (isModCase) {
           const user = await User.findByIdAndUpdate(
             { _id: winnerUser._id },
-            { modCases: winnerUser.modCases },
+            { $inc: { modCases: giveaway.skin.price } },
             { new: true }
           );
         } else {
@@ -134,6 +132,7 @@ export const checkAndPickWinner = async (req, res) => {
             { new: true }
           );
         }
+        
         // _____
 
         await SystemLog.create({
