@@ -1,5 +1,6 @@
 import { User } from "../models/User.js";
 import { SystemMessage, SystemGiveaway, SystemLog } from "../models/System.js";
+import { Skin } from "../models/Skin.js";
 
 
 // Date formatter:
@@ -103,6 +104,39 @@ export const checkAndPickWinner = async (req, res) => {
         giveaway.isDone = true;
         let winnerUser = await User.findById({ _id: winnerId }).exec();
         await giveaway.save({ new: true })
+
+        // SEND SKIN
+        let isModCoins = giveaway.skin.title === "Mod Coins";
+        let isModCase = giveaway.skin.title === "Mod Case";
+    
+        if (!winnerUser) return res.status(404).json({ error: "User not found" });
+        if (isModCoins) {
+          winnerUser.coins += giveaway.skin.price; // price = antal från giveaway
+          const user = await User.findByIdAndUpdate(
+            { _id: winnerUser._id },
+            { coins: winnerUser.coins },
+            { new: true }
+          );
+          return res.status(200).json(user);
+        }
+        if (isModCase) {
+          winnerUser.modCases += giveaway.skin.price; // price = antal från giveaway
+          const user = await User.findByIdAndUpdate(
+            { _id: winnerUser._id },
+            { modCases: winnerUser.modCases },
+            { new: true }
+          );
+          return res.status(200).json(user);
+        }
+        // If it's not "Mod Coins" or "Mod Case", create a new skin and add it to the user's skins array
+        const skin = await Skin.create(giveaway.skin);
+        await User.findByIdAndUpdate(
+          { _id: winnerUser._id },
+          { $push: { skins: skin._id } },
+          { new: true }
+        );
+        // _____
+
         await SystemLog.create({
             type: 0, 
             text: `userID: ${giveaway.winner} won the giveaway: ${giveaway.skin.title} ${giveaway.skin.title === "Mod Case" ? "x" + giveaway.skin.price : giveaway.skin.title === "Mod Coins" ? "x" + giveaway.skin.price : ""}`,

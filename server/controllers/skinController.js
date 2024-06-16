@@ -47,7 +47,6 @@ export const addSkin = async (req, res) => {
 };
 
 export const sendSkinToUser = async (req, res) => {
-  console.log("TRIGGERED ____ SEND ___ SKIN ___ TO USER___")
   try {
     const { reqUserId, reqSkin, reqGiveaway } = req.body;
 
@@ -81,7 +80,7 @@ export const sendSkinToUser = async (req, res) => {
     }
     // If it's not "Mod Coins" or "Mod Case", create a new skin and add it to the user's skins array
     const skin = await Skin.create(reqSkin);
-    const user = await User.findByIdAndUpdate(
+    await User.findByIdAndUpdate(
       { _id: reqUser._id },
       { $push: { skins: skin._id } },
       { new: true }
