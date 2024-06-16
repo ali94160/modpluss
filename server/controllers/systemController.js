@@ -79,40 +79,65 @@ export const createGiveaway = async (req, res) => {
 
 export const checkAndPickWinner = async (req, res) => {
   try {
+    // Find the latest giveaway entry
     let giveaway = await SystemGiveaway.findOne({})
-    .sort({ _id: -1 }) // Sort by _id to get the latest entry
-    .hint({ $natural: -1 }) // Force MongoDB to ignore cache and perform a fresh query
-    .exec();
+      .sort({ _id: -1 })
+      .hint({ $natural: -1 })
+      .exec();
 
-    if(giveaway && giveaway.hasWinner){
-      let winnerUsr = await User.findById({ _id: giveaway.winner }).exec();
+    if (!giveaway) {
+      return res.status(404).json({ message: "No giveaway found" });
+    }
+
+    // If there's a winner already, return the winner
+    if (giveaway.hasWinner) {
+      let winnerUser = await User.findById(giveaway.winner).exec();
       if (intervalId) {
         clearInterval(intervalId);
         intervalId = null;
         console.log('Periodic check stopped');
       }
-      return res.json({ timeLeft: null, giveaway: giveaway, winUser: winnerUsr.username });
+      return res.json({ timeLeft: null, giveaway, winUser: winnerUser.username });
     } else {
-      
       let now = new Date();
-      if (giveaway && !giveaway.hasWinner && now >= giveaway.endDate && giveaway.entries.length > 0) {
-        const randomIndex = Math.floor(Math.random() * giveaway.entries.length);
-        const winnerId = giveaway.entries[randomIndex];
-        giveaway.winner = winnerId;
-        giveaway.hasWinner = true;
-        giveaway.isDone = true;
-        let winnerUser = await User.findById({ _id: winnerId }).exec();
-        await giveaway.save({ new: true })
-        await SystemLog.create({
-            type: 0, 
-            text: `userID: ${giveaway.winner} won the giveaway: ${giveaway.skin.title} ${giveaway.skin.title === "Mod Case" ? "x" + giveaway.skin.price : giveaway.skin.title === "Mod Coins" ? "x" + giveaway.skin.price : ""}`,
-            date: newDate(), 
-        })
-        return res.json({ timeLeft: null, giveaway: giveaway, winUser: winnerUser.username });
-      } else {
-        if(!giveaway){
-          return
+
+      // If the giveaway has ended and there's no winner yet, pick a winner
+      if (!giveaway.hasWinner && now >= giveaway.endDate && giveaway.entries.length > 0) {
+        // Ensure atomicity when updating the giveaway and creating the log
+        const session = await SystemGiveaway.startSession();
+        session.startTransaction();
+        try {
+          // Pick a random winner
+          const randomIndex = Math.floor(Math.random() * giveaway.entries.length);
+          const winnerId = giveaway.entries[randomIndex];
+          giveaway.winner = winnerId;
+          giveaway.hasWinner = true;
+          giveaway.isDone = true;
+          await giveaway.save({ session });
+
+          // Fetch the winner user
+          let winnerUser = await User.findById(winnerId).session(session).exec();
+
+          // Create a system log for the winner
+          await SystemLog.create(
+            [{
+              type: 0,
+              text: `userID: ${giveaway.winner} won the giveaway: ${giveaway.skin.title} ${giveaway.skin.title === "Mod Case" ? "x" + giveaway.skin.price : giveaway.skin.title === "Mod Coins" ? "x" + giveaway.skin.price : ""}`,
+              date: new Date(),
+            }],
+            { session }
+          );
+
+          await session.commitTransaction();
+          session.endSession();
+
+          return res.json({ timeLeft: null, giveaway, winUser: winnerUser.username });
+        } catch (error) {
+          await session.abortTransaction();
+          session.endSession();
+          throw error;
         }
+      } else {
         // Calculate time left until the end of the giveaway
         const currentDate = new Date();
         const endDate = giveaway.endDate;
@@ -121,7 +146,7 @@ export const checkAndPickWinner = async (req, res) => {
         const minutesLeft = Math.floor(secondsLeft / 60);
         const hoursLeft = Math.floor(minutesLeft / 60);
         const daysLeft = Math.floor(hoursLeft / 24);
-        
+
         // Construct object with time left data
         let timeLeftObject = {
           daysLeft: daysLeft,
@@ -129,14 +154,12 @@ export const checkAndPickWinner = async (req, res) => {
           minutesLeft: minutesLeft % 60,
           secondsLeft: secondsLeft % 60
         };
-        return res.json({timeLeft: timeLeftObject, giveaway: giveaway, winUser: null })
+
+        return res.json({ timeLeft: timeLeftObject, giveaway, winUser: null });
       }
     }
   } catch (error) {
-    if (res && res.status) {
-      return res.status(500).json({ message: "Internal server error" });
-    } else {
-    }
+    return res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
 
