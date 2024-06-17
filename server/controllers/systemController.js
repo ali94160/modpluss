@@ -2,7 +2,7 @@ import { User } from "../models/User.js";
 import { SystemMessage, SystemGiveaway, SystemLog } from "../models/System.js";
 import { Skin } from "../models/Skin.js";
 
-
+let HAS_WINNER = false;
 // Date formatter:
 export function newDate() {
   const date = new Date();
@@ -101,6 +101,7 @@ export const checkAndPickWinner = async (req, res) => {
         giveaway.winner = winnerId;
         giveaway.hasWinner = true;
         giveaway.isDone = true;
+        HAS_WINNER = true;
         await giveaway.save(); // Save the giveaway state before proceeding
 
         let winnerUser = await User.findById({ _id: winnerId }).exec();
@@ -178,7 +179,9 @@ export const checkAndPickWinner = async (req, res) => {
         const hasPendingGiveaway = await SystemGiveaway.exists({ hasWinner: false });
         if (hasPendingGiveaway) {
             console.log("Checking for winner...");
-          await checkAndPickWinner();
+            if(!HAS_WINNER) {
+              await checkAndPickWinner();
+            }
         }
       }, 10000);
       console.log('Periodic check started');
