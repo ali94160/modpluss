@@ -2,7 +2,6 @@ import { User } from "../models/User.js";
 import { SystemMessage, SystemGiveaway, SystemLog } from "../models/System.js";
 import { Skin } from "../models/Skin.js";
 
-let HAS_WINNER = false;
 // Date formatter:
 export function newDate() {
   const date = new Date();
@@ -98,20 +97,20 @@ export const checkAndPickWinner = async (req, res) => {
       if (giveaway && !giveaway.isDone && !giveaway.hasWinner && now >= giveaway.endDate && giveaway.entries.length > 0) {
         const randomIndex = Math.floor(Math.random() * giveaway.entries.length);
         const winnerId = giveaway.entries[randomIndex];
+        console.log(winnerId, '  ______ WINNER ID _____')
         giveaway.winner = winnerId;
         giveaway.hasWinner = true;
         giveaway.isDone = true;
-        HAS_WINNER = true;
         await giveaway.save(); // Save the giveaway state before proceeding
 
         let winnerUser = await User.findById({ _id: winnerId }).exec();
         if (!winnerUser) return res.status(404).json({ error: "User not found" });
 
-        // SEND PRIZE
-        let isModCoins = giveaway.skin.title === "Mod Coins";
-        let isModCase = giveaway.skin.title === "Mod Case";
-        console.log(giveaway.skin.price, ' !!!! PRIZE !!!!')
-        if (isModCoins) {
+        // SEND PRIZE 
+          let isModCoins = giveaway.skin.title === "Mod Coins";
+          let isModCase = giveaway.skin.title === "Mod Case";
+          console.log(giveaway.skin.price, ' !!!! PRIZE !!!!')
+          if (isModCoins) {
           await User.findByIdAndUpdate(
             { _id: winnerUser._id },
             { $inc: { coins: giveaway.skin.price } },
@@ -179,11 +178,9 @@ export const checkAndPickWinner = async (req, res) => {
         const hasPendingGiveaway = await SystemGiveaway.exists({ hasWinner: false });
         if (hasPendingGiveaway) {
             console.log("Checking for winner...");
-            if(!HAS_WINNER) {
               await checkAndPickWinner();
-            }
         }
-      }, 10000);
+      }, 1000);
       console.log('Periodic check started');
     } else {
       console.log('Periodic check is already running');
