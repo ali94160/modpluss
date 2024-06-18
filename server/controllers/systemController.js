@@ -76,9 +76,11 @@ export const createGiveaway = async (req, res) => {
         res.status(400).json({ error: error.message });
     }
 }
-
+let isChecking = false;
 export const checkAndPickWinner = async (req, res) => {
   try {
+    if (isChecking) return res.status(503).json({ message: "Already processing" });
+    isChecking = true;
     let giveaway = await SystemGiveaway.findOne({})
       .sort({ _id: -1 }) // Sort by _id to get the latest entry
       .hint({ $natural: -1 }) // Force MongoDB to ignore cache and perform a fresh query
@@ -163,11 +165,9 @@ export const checkAndPickWinner = async (req, res) => {
       }
     }
   } catch (error) {
-    if (res && res.status) {
-      return res.status(500).json({ message: "Internal server error" });
-    } else {
-      console.error(error);
-    }
+    return res.status(500).json({ message: "Internal server error" });
+  } finally {
+    isChecking = false;
   }
 };
 
