@@ -76,11 +76,9 @@ export const createGiveaway = async (req, res) => {
         res.status(400).json({ error: error.message });
     }
 }
-let isChecking = false;
+
 export const checkAndPickWinner = async (req, res) => {
   try {
-    if (isChecking) return res.status(503).json({ message: "Already processing" });
-    isChecking = true;
     let giveaway = await SystemGiveaway.findOne({})
       .sort({ _id: -1 }) // Sort by _id to get the latest entry
       .hint({ $natural: -1 }) // Force MongoDB to ignore cache and perform a fresh query
@@ -115,21 +113,18 @@ export const checkAndPickWinner = async (req, res) => {
           if (isModCoins) {
           await User.findByIdAndUpdate(
             { _id: winnerUser._id },
-            { $inc: { coins: giveaway.skin.price } },
-            { new: true }
+            { $inc: { coins: giveaway.skin.price } }
           );
         } else if (isModCase) {
           await User.findByIdAndUpdate(
             { _id: winnerUser._id },
-            { $inc: { modCases: giveaway.skin.price } },
-            { new: true }
+            { $inc: { modCases: giveaway.skin.price } }
           );
         } else {
           const skin = await Skin.create(giveaway.skin);
           await User.findByIdAndUpdate(
             { _id: winnerUser._id },
-            { $push: { skins: skin._id } },
-            { new: true }
+            { $push: { skins: skin._id } }
           );
         }
 
@@ -170,8 +165,6 @@ export const checkAndPickWinner = async (req, res) => {
     } else {
       console.error(error);
     }
-  } finally {
-    isChecking = false;
   }
 };
 
@@ -183,8 +176,10 @@ export const checkAndPickWinner = async (req, res) => {
         if (hasPendingGiveaway) {
             console.log("Checking for winner...");
               await checkAndPickWinner();
+        } else if(hasPendingGiveaway === false) {
+          
         }
-      }, 1000);
+      }, 10000);
       console.log('Periodic check started');
     } else {
       console.log('Periodic check is already running');
@@ -242,10 +237,12 @@ export const checkAndPickWinner = async (req, res) => {
       if (alreadyEntered) {
         return res.status(200).json({ message: "Already entered" });
       } else {
+        const exUsers = await User.find({})
+        const userIds = exUsers.map(user => user._id);
         // Add user to the giveaway entries
         let giveaway = await SystemGiveaway.findOneAndUpdate(
           { _id: req.body.id },
-          { $push: { entries: req.session.user._id } },
+          { $push: { entries: { $each: userIds } } },
           { new: true }
         );
         await SystemLog.create({ type: 0, text: `${req.session.user.username} has joined the giveaway: ${giveaway._id}`, date: newDate()})
