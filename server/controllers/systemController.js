@@ -237,12 +237,12 @@ export const checkAndPickWinner = async (req, res) => {
       if (alreadyEntered) {
         return res.status(200).json({ message: "Already entered" });
       } else {
-        const exUsers = await User.find({})
-        const userIds = exUsers.map(user => user._id);
         // Add user to the giveaway entries
+        // const exUsers = await User.find({})
+        // const userIds = exUsers.map(user => user._id);
         let giveaway = await SystemGiveaway.findOneAndUpdate(
           { _id: req.body.id },
-          { $push: { entries: { $each: userIds } } },
+          { $push: { entries: req.session.user._id } },
           { new: true }
         );
         await SystemLog.create({ type: 0, text: `${req.session.user.username} has joined the giveaway: ${giveaway._id}`, date: newDate()})
