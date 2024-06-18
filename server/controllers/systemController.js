@@ -165,7 +165,11 @@ export const checkAndPickWinner = async (req, res) => {
       }
     }
   } catch (error) {
-    return res.status(500).json({ message: "Internal server error" });
+    if (res && res.status) {
+      return res.status(500).json({ message: "Internal server error" });
+    } else {
+      console.error(error);
+    }
   } finally {
     isChecking = false;
   }
