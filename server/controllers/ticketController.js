@@ -59,6 +59,15 @@ export const removeAllTickets = async (req, res) => {
   }
 };
 
+export const removeMyTickets = async (req, res) => {
+  try {
+    await Ticket.deleteMany({ handler: req.session.user.username });
+    res.status(200);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 export const getAllTicketsCount = async (req, res) => {
   try {
       if(!req.session.user){ return res.status(404).json({ error: "User not logged in" }); }

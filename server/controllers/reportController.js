@@ -12,7 +12,7 @@ export const addReport = async (req, res) => {
 
         // Update the user's allTimeReports count
         await User.findOneAndUpdate(
-            { username: reportData.handler },
+            { username: req.body.handler },
             { $inc: { allTimeReports: 1 } }
         );
         res.status(200).json(report);
@@ -50,6 +50,15 @@ export const removeAllReports = async (req, res) => {
       res.status(500).json({ error: error.message });
     }
 };
+
+export const removeMyReports = async (req, res) => {
+    try {
+      await Ticket.deleteMany({ handler: req.session.user.username });
+      res.status(200);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  };
 
 export const getAllReportsCount = async (req, res) => {
     try {

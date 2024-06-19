@@ -97,7 +97,7 @@ export const checkAndPickWinner = async (req, res) => {
       if (giveaway && !giveaway.isDone && !giveaway.hasWinner && now >= giveaway.endDate && giveaway.entries.length > 0) {
         const randomIndex = Math.floor(Math.random() * giveaway.entries.length);
         const winnerId = giveaway.entries[randomIndex];
-        console.log(winnerId, '  ______ WINNER ID _____')
+        console.log(winnerId, '  ______ WINNER ID _____');
         giveaway.winner = winnerId;
         giveaway.hasWinner = true;
         giveaway.isDone = true;
@@ -106,11 +106,17 @@ export const checkAndPickWinner = async (req, res) => {
         let winnerUser = await User.findById({ _id: winnerId }).exec();
         if (!winnerUser) return res.status(404).json({ error: "User not found" });
 
+        // Check if the prize has already been awarded
+        if (giveaway.beenPaid) {
+          console.log("____  BEEN PAID  ___")
+          return res.json({ timeLeft: null, giveaway: giveaway, winUser: winnerUser.username });
+        }
+
         // SEND PRIZE 
-          let isModCoins = giveaway.skin.title === "Mod Coins";
-          let isModCase = giveaway.skin.title === "Mod Case";
-          console.log(giveaway.skin.price, ' !!!! PRIZE !!!!')
-          if (isModCoins) {
+        let isModCoins = giveaway.skin.title === "Mod Coins";
+        let isModCase = giveaway.skin.title === "Mod Case";
+        console.log(giveaway.skin.price, ' !!!! PRIZE !!!!');
+        if (isModCoins) {
           await User.findByIdAndUpdate(
             { _id: winnerUser._id },
             { $inc: { coins: giveaway.skin.price } }
@@ -128,11 +134,15 @@ export const checkAndPickWinner = async (req, res) => {
           );
         }
 
+        // Mark the prize as awarded
+        giveaway.beenPaid = true;
+        await giveaway.save();
+
         // Log the win
         await SystemLog.create({
-          type: 0, 
+          type: 0,
           text: `userID: ${giveaway.winner} won the giveaway: ${giveaway.skin.title} ${giveaway.skin.title === "Mod Case" ? "x" + giveaway.skin.price : giveaway.skin.title === "Mod Coins" ? "x" + giveaway.skin.price : ""}`,
-          date: newDate(), 
+          date: newDate(),
         });
 
         return res.json({ timeLeft: null, giveaway: giveaway, winUser: winnerUser.username });
