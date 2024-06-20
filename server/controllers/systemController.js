@@ -114,7 +114,7 @@ export const checkAndPickWinner = async (req, res) => {
         }
         console.log("WINNER USER: ", winnerUser)
         // Testa > LasteGiveaway + if winner == winnerId, + settimeout index
-        if(giveawayRes.winner === winnerId._id){
+        if(giveawayRes.winner === winnerId._id && !giveawayRes.beenPaid) {
           // SEND PRIZE 
           let isModCoins = giveaway.skin.title === "Mod Coins";
           let isModCase = giveaway.skin.title === "Mod Case";
