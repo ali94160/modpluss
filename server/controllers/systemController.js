@@ -9,16 +9,18 @@ export function newDate() {
   const dateOptions = {
     year: 'numeric',
     month: '2-digit',
-    day: '2-digit'
+    day: '2-digit',
+    timeZone: 'UTC'
   };
   // Options to format the time
   const timeOptions = {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
-    hour12: false
+    hour12: false,
+    timeZone: 'UTC'
   };
-  const formattedDateParts = date.toLocaleDateString(undefined, dateOptions).split(/\D/);
+  const formattedDateParts = date.toLocaleDateString('en-GB', dateOptions).split('/');
   let year, month, day;
   
   if (formattedDateParts[0].length === 4) {
@@ -27,8 +29,8 @@ export function newDate() {
     [day, month, year] = formattedDateParts;
   }
   const formattedDateString = `${year}/${month}/${day}`;
-  // Format the time using the user's local settings
-  const formattedTimeString = date.toLocaleTimeString(undefined, timeOptions);
+  // Format the time in UTC
+  const formattedTimeString = date.toLocaleTimeString('en-GB', timeOptions);
   return `${formattedDateString} ${formattedTimeString}`;
 }
 
