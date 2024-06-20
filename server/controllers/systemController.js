@@ -105,23 +105,16 @@ export const checkAndPickWinner = async (req, res) => {
         giveaway.isDone = true;
         let winnerUser = await User.findById({ _id: winnerId }).exec();
         if (!winnerUser) return res.status(404).json({ error: "User not found" });
-        if (giveaway.beenPaid) {
-          return res.json({ timeLeft: null, giveaway: giveaway, winUser: winnerUser.username });
-        }
-        await giveaway.save(); // Save the giveaway state before proceeding
-
+        const giveawayRes = await giveaway.save(); // Save the giveaway state before proceeding
+        
         // Check if the prize has already been awarded
         if (giveaway.beenPaid) {
           console.log("____  BEEN PAID  ___")
           return res.json({ timeLeft: null, giveaway: giveaway, winUser: winnerUser.username });
         }
-        const latestGiveaway = await SystemGiveaway.findOne({})
-        .sort({ _id: -1 }) // Sort by _id to get the latest entry
-        .hint({ $natural: -1 }) // Force MongoDB to ignore cache and perform a fresh query
-        .exec();
-
+        console.log("WINNER USER: ", winnerUser)
         // Testa > LasteGiveaway + if winner == winnerId, + settimeout index
-        if(latestGiveaway.winner === winnerId._id){
+        if(giveawayRes.winner === winnerId._id){
           // SEND PRIZE 
           let isModCoins = giveaway.skin.title === "Mod Coins";
           let isModCase = giveaway.skin.title === "Mod Case";
