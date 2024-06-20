@@ -53,7 +53,7 @@ export const removeAllReports = async (req, res) => {
 
 export const removeMyReports = async (req, res) => {
     try {
-      await Ticket.deleteMany({ handler: req.session.user.username });
+      await Report.deleteMany({ handler: req.session.user.username });
       res.status(200);
     } catch (error) {
       res.status(500).json({ error: error.message });
