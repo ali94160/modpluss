@@ -9,18 +9,16 @@ export function newDate() {
   const dateOptions = {
     year: 'numeric',
     month: '2-digit',
-    day: '2-digit',
-    timeZone: 'UTC'
+    day: '2-digit'
   };
   // Options to format the time
   const timeOptions = {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
-    hour12: false,
-    timeZone: 'UTC'
+    hour12: false
   };
-  const formattedDateParts = date.toLocaleDateString('en-GB', dateOptions).split('/');
+  const formattedDateParts = date.toLocaleDateString(undefined, dateOptions).split(/\D/);
   let year, month, day;
   
   if (formattedDateParts[0].length === 4) {
@@ -29,8 +27,8 @@ export function newDate() {
     [day, month, year] = formattedDateParts;
   }
   const formattedDateString = `${year}/${month}/${day}`;
-  // Format the time in UTC
-  const formattedTimeString = date.toLocaleTimeString('en-GB', timeOptions);
+  // Format the time using the user's local settings
+  const formattedTimeString = date.toLocaleTimeString(undefined, timeOptions);
   return `${formattedDateString} ${formattedTimeString}`;
 }
 
@@ -81,6 +79,7 @@ export const createGiveaway = async (req, res) => {
 
 export const checkAndPickWinner = async (req, res) => {
   try {
+    // Find the latest giveaway entry
     let giveaway = await SystemGiveaway.findOne({})
       .sort({ _id: -1 }) // Sort by _id to get the latest entry
       .hint({ $natural: -1 }) // Force MongoDB to ignore cache and perform a fresh query
@@ -99,56 +98,68 @@ export const checkAndPickWinner = async (req, res) => {
       if (giveaway && !giveaway.isDone && !giveaway.hasWinner && now >= giveaway.endDate && giveaway.entries.length > 0) {
         const randomIndex = Math.floor(Math.random() * giveaway.entries.length);
         const winnerId = giveaway.entries[randomIndex];
-        console.log(winnerId, '  ______ WINNER ID _____');
-        giveaway.winner = winnerId;
-        giveaway.hasWinner = true;
-        giveaway.isDone = true;
+
+        // Update the giveaway document atomically
+        const updatedGiveaway = await SystemGiveaway.findOneAndUpdate(
+          { _id: giveaway._id, hasWinner: false }, // Ensure we only update if hasWinner is false
+          {
+            $set: {
+              winner: winnerId,
+              hasWinner: true,
+              isDone: true,
+            },
+          },
+          { new: true } // Return the updated document
+        ).exec();
+
+        if (!updatedGiveaway) {
+          // Another instance already processed this giveaway
+          return res.status(409).json({ message: "Giveaway already processed" });
+        }
+
         let winnerUser = await User.findById({ _id: winnerId }).exec();
         if (!winnerUser) return res.status(404).json({ error: "User not found" });
-        const giveawayRes = await giveaway.save(); // Save the giveaway state before proceeding
-        
+
         // Check if the prize has already been awarded
-        if (giveaway.beenPaid) {
-          console.log("____  BEEN PAID  ___")
-          return res.json({ timeLeft: null, giveaway: giveaway, winUser: winnerUser.username });
+        if (updatedGiveaway.beenPaid) {
+          console.log("____  BEEN PAID  ___");
+          return res.json({ timeLeft: null, giveaway: updatedGiveaway, winUser: winnerUser.username });
         }
-        console.log("WINNER USER: ", winnerUser)
-        // Testa > LasteGiveaway + if winner == winnerId, + settimeout index
-        if(giveawayRes.winner === winnerId && !giveawayRes.beenPaid) {
-          // SEND PRIZE 
-          let isModCoins = giveaway.skin.title === "Mod Coins";
-          let isModCase = giveaway.skin.title === "Mod Case";
-          console.log(giveaway.skin.price, ' !!!! PRIZE !!!!');
-          if (isModCoins) {
-            await User.findByIdAndUpdate(
+
+        // SEND PRIZE
+        let isModCoins = updatedGiveaway.skin.title === "Mod Coins";
+        let isModCase = updatedGiveaway.skin.title === "Mod Case";
+        console.log(updatedGiveaway.skin.price, ' !!!! PRIZE !!!!');
+        if (isModCoins) {
+          await User.findByIdAndUpdate(
             { _id: winnerUser._id },
-            { $inc: { coins: giveaway.skin.price } }
+            { $inc: { coins: updatedGiveaway.skin.price } }
           );
         } else if (isModCase) {
           await User.findByIdAndUpdate(
             { _id: winnerUser._id },
-            { $inc: { modCases: giveaway.skin.price } }
+            { $inc: { modCases: updatedGiveaway.skin.price } }
           );
         } else {
-          const skin = await Skin.create(giveaway.skin);
+          const skin = await Skin.create(updatedGiveaway.skin);
           await User.findByIdAndUpdate(
             { _id: winnerUser._id },
             { $push: { skins: skin._id } }
           );
         }
-      }
+
         // Mark the prize as awarded
-        giveaway.beenPaid = true;
-        await giveaway.save();
+        updatedGiveaway.beenPaid = true;
+        await updatedGiveaway.save();
 
         // Log the win
         await SystemLog.create({
           type: 0,
-          text: `userID: ${giveaway.winner} won the giveaway: ${giveaway.skin.title} ${giveaway.skin.title === "Mod Case" ? "x" + giveaway.skin.price : giveaway.skin.title === "Mod Coins" ? "x" + giveaway.skin.price : ""}`,
+          text: `userID: ${updatedGiveaway.winner} won the giveaway: ${updatedGiveaway.skin.title} ${updatedGiveaway.skin.title === "Mod Case" ? "x" + updatedGiveaway.skin.price : updatedGiveaway.skin.title === "Mod Coins" ? "x" + updatedGiveaway.skin.price : ""}`,
           date: newDate(),
         });
 
-        return res.json({ timeLeft: null, giveaway: giveaway, winUser: winnerUser.username });
+        return res.json({ timeLeft: null, giveaway: updatedGiveaway, winUser: winnerUser.username });
       } else {
         if (!giveaway) {
           return;
@@ -161,7 +172,7 @@ export const checkAndPickWinner = async (req, res) => {
         const minutesLeft = Math.floor(secondsLeft / 60);
         const hoursLeft = Math.floor(minutesLeft / 60);
         const daysLeft = Math.floor(hoursLeft / 24);
-        
+
         // Construct object with time left data
         let timeLeftObject = {
           daysLeft: daysLeft,
@@ -180,6 +191,7 @@ export const checkAndPickWinner = async (req, res) => {
     }
   }
 };
+
 
 
   const startChecking = () => {
