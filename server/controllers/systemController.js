@@ -78,109 +78,69 @@ export const createGiveaway = async (req, res) => {
 
 export const checkAndPickWinner = async (req, res) => {
   try {
+    // Start a session for transaction
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
     // Find the latest giveaway entry
-    let giveaway = await SystemGiveaway.findOne({})
-      .sort({ _id: -1 }) // Sort by _id to get the latest entry
-      .hint({ $natural: -1 }) // Force MongoDB to ignore cache and perform a fresh query
-      .exec();
+    let giveaway = await SystemGiveaway.findOne({}).sort({ _id: -1 }).hint({ $natural: -1 }).session(session).exec();
 
     if (giveaway && giveaway.hasWinner) {
-      let winnerUsr = await User.findById({ _id: giveaway.winner }).exec();
+      const winnerUser = await User.findById(giveaway.winner).session(session).exec();
+      await session.commitTransaction();
+      session.endSession();
       if (intervalId) {
         clearInterval(intervalId);
         intervalId = null;
         console.log('Periodic check stopped');
       }
-      return res.json({ timeLeft: null, giveaway: giveaway, winUser: winnerUsr.username });
-    } else {
-      let now = new Date();
-      if (giveaway && !giveaway.isDone && !giveaway.hasWinner && now >= giveaway.endDate && giveaway.entries.length > 0) {
-        const randomIndex = Math.floor(Math.random() * giveaway.entries.length);
-        const winnerId = giveaway.entries[randomIndex];
+      return res.json({ timeLeft: null, giveaway, winUser: winnerUser.username });
+    }
 
-        // Update the giveaway document atomically
-        const updatedGiveaway = await SystemGiveaway.findOneAndUpdate(
-          { _id: giveaway._id, hasWinner: false }, // Ensure we only update if hasWinner is false
-          {
-            $set: {
-              winner: winnerId,
-              hasWinner: true,
-              isDone: true,
-            },
-          },
-          { new: true } // Return the updated document
-        ).exec();
+    let now = new Date();
+    if (giveaway && !giveaway.isDone && !giveaway.hasWinner && now >= giveaway.endDate && giveaway.entries.length > 0) {
+      const randomIndex = Math.floor(Math.random() * giveaway.entries.length);
+      const winnerId = giveaway.entries[randomIndex];
 
-        if (!updatedGiveaway) {
-          // Another instance already processed this giveaway
-          return res.status(409).json({ message: "Giveaway already processed" });
-        }
+      // Update the giveaway document atomically
+      const updatedGiveaway = await SystemGiveaway.findOneAndUpdate(
+        { _id: giveaway._id, hasWinner: false },
+        { $set: { winner: winnerId, hasWinner: true, isDone: true } },
+        { new: true, session }
+      ).exec();
 
-        let winnerUser = await User.findById({ _id: winnerId }).exec();
-        if (!winnerUser) return res.status(404).json({ error: "User not found" });
-
-        // Check if the prize has already been awarded
-        if (updatedGiveaway.beenPaid) {
-          console.log("____  BEEN PAID  ___");
-          return res.json({ timeLeft: null, giveaway: updatedGiveaway, winUser: winnerUser.username });
-        }
-
-        // SEND PRIZE
-        let isModCoins = updatedGiveaway.skin.title === "Mod Coins";
-        let isModCase = updatedGiveaway.skin.title === "Mod Case";
-        console.log(updatedGiveaway.skin.price, ' !!!! PRIZE !!!!');
-        if (isModCoins) {
-          await User.findByIdAndUpdate(
-            { _id: winnerUser._id },
-            { $inc: { coins: updatedGiveaway.skin.price } }
-          );
-        } else if (isModCase) {
-          await User.findByIdAndUpdate(
-            { _id: winnerUser._id },
-            { $inc: { modCases: updatedGiveaway.skin.price } }
-          );
-        } else {
-          const skin = await Skin.create(updatedGiveaway.skin);
-          await User.findByIdAndUpdate(
-            { _id: winnerUser._id },
-            { $push: { skins: skin._id } }
-          );
-        }
-
-        // Mark the prize as awarded
-        updatedGiveaway.beenPaid = true;
-        await updatedGiveaway.save();
-
-        // Log the win
-        await SystemLog.create({
-          type: 0,
-          text: `userID: ${updatedGiveaway.winner} won the giveaway: ${updatedGiveaway.skin.title} ${updatedGiveaway.skin.title === "Mod Case" ? "x" + updatedGiveaway.skin.price : updatedGiveaway.skin.title === "Mod Coins" ? "x" + updatedGiveaway.skin.price : ""}`,
-          date: newDate(),
-        });
-
-        return res.json({ timeLeft: null, giveaway: updatedGiveaway, winUser: winnerUser.username });
-      } else {
-        if (!giveaway) {
-          return;
-        }
-        // Calculate time left until the end of the giveaway
-        const currentDate = new Date();
-        const endDate = giveaway.endDate;
-        const timeLeft = endDate.getTime() - currentDate.getTime();
-        const secondsLeft = Math.floor(timeLeft / 1000);
-        const minutesLeft = Math.floor(secondsLeft / 60);
-        const hoursLeft = Math.floor(minutesLeft / 60);
-        const daysLeft = Math.floor(hoursLeft / 24);
-
-        // Construct object with time left data
-        let timeLeftObject = {
-          daysLeft: daysLeft,
-          hoursLeft: hoursLeft % 24,
-          minutesLeft: minutesLeft % 60,
-          secondsLeft: secondsLeft % 60
-        };
-        return res.json({ timeLeft: timeLeftObject, giveaway: giveaway, winUser: null });
+      if (!updatedGiveaway) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(409).json({ message: "Giveaway already processed" });
       }
+
+      const winnerUser = await User.findById(winnerId).session(session).exec();
+      if (!winnerUser) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      if (updatedGiveaway.beenPaid) {
+        await session.commitTransaction();
+        session.endSession();
+        return res.json({ timeLeft: null, giveaway: updatedGiveaway, winUser: winnerUser.username });
+      }
+
+      // Send prize
+      await sendPrize(winnerUser, updatedGiveaway);
+
+      // Log the win
+      await logWin(updatedGiveaway);
+
+      await session.commitTransaction();
+      session.endSession();
+      return res.json({ timeLeft: null, giveaway: updatedGiveaway, winUser: winnerUser.username });
+    } else {
+      await session.commitTransaction();
+      session.endSession();
+      return res.json({ timeLeft: calculateTimeLeft(giveaway), giveaway, winUser: null });
     }
   } catch (error) {
     if (res && res.status) {
@@ -189,6 +149,51 @@ export const checkAndPickWinner = async (req, res) => {
       console.error(error);
     }
   }
+};
+
+// Function to send the prize to the winner
+const sendPrize = async (winnerUser, giveaway) => {
+  const { skin } = giveaway;
+  let update;
+
+  if (skin.title === "Mod Coins") {
+    update = { $inc: { coins: skin.price } };
+  } else if (skin.title === "Mod Case") {
+    update = { $inc: { modCases: skin.price } };
+  } else {
+    const newSkin = await Skin.create(skin);
+    update = { $push: { skins: newSkin._id } };
+  }
+
+  await User.findByIdAndUpdate(winnerUser._id, update).exec();
+  giveaway.beenPaid = true;
+  await giveaway.save();
+};
+
+// Function to log the win
+const logWin = async (giveaway) => {
+  const logText = `userID: ${giveaway.winner} won the giveaway: ${giveaway.skin.title} ${giveaway.skin.title === "Mod Case" ? "x" + giveaway.skin.price : giveaway.skin.title === "Mod Coins" ? "x" + giveaway.skin.price : ""}`;
+  await SystemLog.create({
+    type: 0,
+    text: logText,
+    date: new Date(),
+  });
+};
+
+// Function to calculate time left
+const calculateTimeLeft = (giveaway) => {
+  if (!giveaway) return null;
+
+  const currentDate = new Date();
+  const endDate = giveaway.endDate;
+  const timeLeft = endDate.getTime() - currentDate.getTime();
+
+  return {
+    daysLeft: Math.floor(timeLeft / (1000 * 60 * 60 * 24)),
+    hoursLeft: Math.floor((timeLeft / (1000 * 60 * 60)) % 24),
+    minutesLeft: Math.floor((timeLeft / (1000 * 60)) % 60),
+    secondsLeft: Math.floor((timeLeft / 1000) % 60),
+  };
 };
 
 
