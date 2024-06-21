@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { User } from "../models/User.js";
 import { SystemMessage, SystemGiveaway, SystemLog } from "../models/System.js";
 import { Skin } from "../models/Skin.js";
