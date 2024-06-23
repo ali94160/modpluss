@@ -28,9 +28,9 @@ const systemLogSchema = new Schema({
 });
 
 const systemAdminCallSchema = new Schema({
-  label: { type: String , required: true }, 
-  text:  { type: String, required: true },
-  inUse: { type: Boolean, required: true }
+  label: { type: String }, 
+  text:  { type: String },
+  inUse: { type: Boolean }
 });
 
 export const SystemMessage = mongoose.model(
