@@ -65,7 +65,7 @@ export const createUser = async (req, res) => {
 export const updateUserPassword = async (req, res) => {
     try {
         // Find the user by ID
-        const user = await User.findById(req.body.userId);
+        const user = await User.findById({ _id: req.body.userId });
         if (!user) {
             res.status(404).json({ error: "User not found" });
             return;
