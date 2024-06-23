@@ -354,22 +354,12 @@ export const getAdminCallsText = async (req, res) => {
   }
 }
 
-export const deleteAdmincAllsTextByIds = async (req, res) => {
+export const deleteAdmincAllsTextById = async (req, res) => {
   try {
-    const idsToDelete = req.body.ids;
+    const { id } = req.params;
+    await SystemAdminCall.deleteMany({ _id: { $in: id } });
 
-    // Ensure the idsToDelete is an array and not empty
-    if (!Array.isArray(idsToDelete) || idsToDelete.length === 0) {
-      return res.status(400).json({ message: "Invalid input: 'ids' must be a non-empty array" });
-    }
-
-    // Delete the items by their IDs
-    await SystemAdminCall.deleteMany({ _id: { $in: idsToDelete } });
-
-    // Fetch the remaining items
-    const remainingItems = await SystemAdminCall.find({});
-
-    res.status(200).json({ message: "Selected logs cleared", remainingItems });
+    res.status(200).json({ message: "Admin call text removed" });
   } catch (error) {
     console.error('Error deleting admin calls:', error);
     res.status(500).json({ message: "Internal server error" });
