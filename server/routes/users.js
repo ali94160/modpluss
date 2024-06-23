@@ -23,7 +23,7 @@ const router = express.Router();
 router.get("/", getUsers);
 
 router.get("/:id", getUser); // kommer in som req.body?
-router.patch("/update/password", checkFlag([FLAGS.SUPER, FLAGS.ADMIN]), updateUserPassword);
+router.put("/update/password", checkFlag([FLAGS.SUPER, FLAGS.ADMIN]), updateUserPassword);
 router.post("/", createUser);
 
 router.patch("/gift/all-users", checkFlag([FLAGS.SUPER]), updateAllUsers);
