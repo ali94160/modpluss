@@ -62,6 +62,40 @@ export const createUser = async (req, res) => {
     }
 }
 
+export const updateUserPassword = async (req, res) => {
+    try {
+        // Find the user by ID
+        const user = await User.findById(req.body.userId);
+        if (!user) {
+            res.status(404).json({ error: "User not found" });
+            return;
+        }
+        // Check if the new password meets the length requirement
+        if (req.body.newPassword.length < 3) {
+            res.status(407).json({ error: "Password too short" });
+            return;
+        }
+        // Hash the new password
+        const newHash = crypto.createHmac('sha256', process.env.SECRET_TOKEN).update(req.body.newPassword).digest("hex");
+
+        // Update the user's password
+        user.password = newHash;
+        await user.save();
+
+        // Log the password change
+        await SystemLog.create({
+            type: 1, 
+            text: `${req.session.user.username} updated ${user.username}'s password`, 
+            date: newDate()
+        });
+
+        // Send a success response
+        res.status(200).json({ message: "Password updated successfully" });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+}
+
 // update a user
 export const updateUser = async (req, res) => {
     const { id } = req.params;
