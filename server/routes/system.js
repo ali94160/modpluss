@@ -1,6 +1,6 @@
 import express from "express";
 import { FLAGS, checkFlag } from "../middlewares/roles.js";
-import { createSystemMessage, getSystemMessage, removeSystemMessage, createGiveaway, stopGiveawayAndPickWinner, checkAndPickWinner, enterGiveaway, getLastGiveaway, removeGiveaway, getSystemLogs, addLogging, clearSystemLogs, getAdminCallsText, addAdminCallText, deleteAdmincAllsTextByIds } from "../controllers/systemController.js";
+import { createSystemMessage, getSystemMessage, removeSystemMessage, createGiveaway, stopGiveawayAndPickWinner, checkAndPickWinner, enterGiveaway, getLastGiveaway, removeGiveaway, getSystemLogs, addLogging, clearSystemLogs, getAdminCallsText, addAdminCallText, deleteAdmincAllsTextByIds, updateAdminCallText } from "../controllers/systemController.js";
 const router = express.Router();
 
 // system message
@@ -22,5 +22,5 @@ router.post("/logs/add", addLogging)
 router.get("/admin/call/text", getAdminCallsText)
 router.post("/admin/call/text", checkFlag([FLAGS.ADMIN, FLAGS.SUPER]), addAdminCallText)
 router.delete("/admin/call/text", checkFlag([FLAGS.ADMIN, FLAGS.SUPER]), deleteAdmincAllsTextByIds)
-
+router.put("/admin/call/text/:id", checkFlag([FLAGS.ADMIN, FLAGS.SUPER]), updateAdminCallText)
 export default router;

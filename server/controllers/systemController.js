@@ -375,3 +375,23 @@ export const deleteAdmincAllsTextByIds = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const updateAdminCallText = async (req, res) => {
+  try {
+    const { id } = req.params; // Assuming the ID is passed as a URL parameter
+    const updateData = req.body; // The new data for the systemAdminCall
+
+    const updatedAdminCallText = await SystemAdminCall.findByIdAndUpdate(id, updateData, {
+      new: true, // This option returns the modified document rather than the original
+      runValidators: true // This option ensures that any validation rules are applied
+    });
+
+    if (!updatedAdminCallText) {
+      return res.status(404).json({ error: 'SystemAdminCall not found' });
+    }
+
+    return res.status(200).json({ updatedAdminCallText });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
