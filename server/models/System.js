@@ -22,9 +22,15 @@ const systemGiveawaySchema = new Schema({
 });
 
 const systemLogSchema = new Schema({
-  type: { type: Number }, // 0 = info, 1 = error
+  type: { type: Number },
   text: { type: String },
   date: { type: String }
+});
+
+const systemAdminCallSchema = new Schema({
+  label: { type: String , required: true }, 
+  text:  { type: String, required: true },
+  inUse: { type: Boolean, required: true }
 });
 
 export const SystemMessage = mongoose.model(
@@ -36,6 +42,11 @@ export const SystemGiveaway = mongoose.model(
     "SystemGiveaway",
     systemGiveawaySchema
   );
+
+export const SystemAdminCall = mongoose.model(
+  "SystemAdminCall",
+  systemAdminCallSchema
+);
 
 export const SystemLog = mongoose.model(
   "SystemLog",

@@ -1,5 +1,5 @@
 import { User } from "../models/User.js";
-import { SystemMessage, SystemGiveaway, SystemLog } from "../models/System.js";
+import { SystemMessage, SystemGiveaway, SystemLog, SystemAdminCall } from "../models/System.js";
 import { Skin } from "../models/Skin.js";
 
 // Date formatter:
@@ -333,3 +333,44 @@ export const checkAndPickWinner = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 }
+
+// Admin calls CRUD:
+export const addAdminCallText = async (req, res) => { 
+  try {
+      await SystemAdminCall.create(req.body.adminCallText);
+      await res.status(200);
+  } catch (error) {
+      res.status(500).json({ error: error.message });
+  }
+}
+
+export const getAdminCallsText = async (req, res) => { 
+  try {
+      const list = await SystemAdminCall.find({})
+      await res.status(200).json(list);
+  } catch (error) {
+      res.status(500).json({ error: error.message });
+  }
+}
+
+export const deleteAdmincAllsTextByIds = async (req, res) => {
+  try {
+    const idsToDelete = req.body.ids;
+
+    // Ensure the idsToDelete is an array and not empty
+    if (!Array.isArray(idsToDelete) || idsToDelete.length === 0) {
+      return res.status(400).json({ message: "Invalid input: 'ids' must be a non-empty array" });
+    }
+
+    // Delete the items by their IDs
+    await SystemAdminCall.deleteMany({ _id: { $in: idsToDelete } });
+
+    // Fetch the remaining items
+    const remainingItems = await SystemAdminCall.find({});
+
+    res.status(200).json({ message: "Selected logs cleared", remainingItems });
+  } catch (error) {
+    console.error('Error deleting admin calls:', error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

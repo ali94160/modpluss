@@ -62,7 +62,7 @@ export const removeAllTickets = async (req, res) => {
 export const removeMyTickets = async (req, res) => {
   try {
     await Ticket.deleteMany({ handler: req.session.user.username });
-    res.status(200);
+    res.status(200).json({ message: "Your tickets has been removed" });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
