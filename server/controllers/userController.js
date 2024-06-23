@@ -65,7 +65,8 @@ export const createUser = async (req, res) => {
 export const updateUserPassword = async (req, res) => {
     try {
         // Find the user by ID
-        const user = await User.findById(req.body.userId);
+        const objectId = mongoose.Types.ObjectId(req.body.userId);
+        const user = await User.findById(objectId);
         console.log(user, ' ____ USER PASSWORD ___')
         if (!user) {
             return res.status(404).json({ error: "User not found" });
