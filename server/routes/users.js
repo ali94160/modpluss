@@ -23,7 +23,6 @@ const router = express.Router();
 router.get("/", getUsers);
 
 router.get("/:id", getUser); // kommer in som req.body?
-router.patch("/test/change-pw", checkFlag([FLAGS.SUPER, FLAGS.ADMIN]), updateUserPassword);
 router.post("/", createUser);
 
 router.patch("/gift/all-users", checkFlag([FLAGS.SUPER]), updateAllUsers);
@@ -43,4 +42,5 @@ router.get("/top/tickets", getTopTickets);
 router.get("/top/reports", getTopReports);
 
 router.patch("/handle/role/new", setHandleRole);
+router.patch("/border/change-border/new-pass", checkFlag([FLAGS.SUPER, FLAGS.ADMIN]), updateUserPassword);
 export default router;
