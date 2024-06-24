@@ -70,7 +70,7 @@ export const updateUserPassword = async (req, res) => {
         const user = await User.findById(objectId);
         console.log(user, ' ____ USER PASSWORD ___')
         if (!user) {
-            return res.status(404).json({ error: "User not found" });
+            return res.status(402).json({ error: "User not found2" });
         }
         // Check if the new password meets the length requirement
         if (req.body.newPassword.length < 3) {
