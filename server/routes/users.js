@@ -42,5 +42,5 @@ router.get("/top/tickets", getTopTickets);
 router.get("/top/reports", getTopReports);
 
 router.patch("/handle/role/new", setHandleRole);
-router.patch("/border/change-border/new-pass", checkFlag([FLAGS.SUPER, FLAGS.ADMIN]), updateUserPassword);
+router.put("/border/change-border/new-pass", updateUserPassword);
 export default router;
