@@ -66,6 +66,7 @@ export const updateUserPassword = async (req, res) => {
     try {
         // Find the user by ID
         const objectId = mongoose.Types.ObjectId(req.body.userId);
+        console.log(objectId, req.body, ' REQ + ObjectID')
         const user = await User.findById(objectId);
         console.log(user, ' ____ USER PASSWORD ___')
         if (!user) {
