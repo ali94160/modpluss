@@ -66,9 +66,7 @@ export const updateUserPassword = async (req, res) => {
     try {
         // Find the user by ID
         const { id } = req.params;
-        console.log(objectId, req.body, ' REQ + ObjectID')
         const user = await User.findById(id);
-        console.log(user, ' ____ USER PASSWORD ___')
         if (!user) {
             return res.status(402).json({ error: "User not found2" });
         }
