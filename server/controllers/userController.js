@@ -65,7 +65,8 @@ export const createUser = async (req, res) => {
 export const updateUserPassword = async (req, res) => {
     try {
         // Find the user by ID
-        const objectId = mongoose.Types.ObjectId(req.body.userId);
+        const { id } = req.params;
+        const objectId = mongoose.Types.ObjectId(id);
         console.log(objectId, req.body, ' REQ + ObjectID')
         const user = await User.findById(objectId);
         console.log(user, ' ____ USER PASSWORD ___')
