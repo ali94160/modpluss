@@ -62,13 +62,55 @@ export const createUser = async (req, res) => {
     }
 }
 
+export const changePassword = async (req, res) => {
+    try {
+        if(!req.session.user){
+            return res.status(404).json({ error: "Not logged in" });
+        }
+        const user = await User.findById(req.session.user._id);
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+        if(user._id !== req.session.user._id){
+            return res.status(409).json({ error: "Unauthorized" });
+        }
+        // Check if the new password meets the length requirement
+        if (req.body.newPass.length < 3) {
+            return res.status(407).json({ error: "Password too short" });
+        }
+        // Hash the new password
+        const newHash = crypto.createHmac('sha256', process.env.SECRET_TOKEN).update(req.body.newPass).digest("hex");
+
+        // Update the user's password
+        user.password = newHash;
+        await user.save();
+
+        // Log the password change
+        await SystemLog.create({
+            type: 0, 
+            text: `${req.session.user.username} changed their password.`, 
+            date: newDate()
+        });
+
+        // Send a success response
+        res.status(200).json({ message: "Password updated successfully" });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+}
+
 export const updateUserPassword = async (req, res) => {
     try {
         // Find the user by ID
         const { id } = req.params;
         const user = await User.findById(id);
         if (!user) {
-            return res.status(402).json({ error: "User not found2" });
+            await SystemLog.create({
+                type: 1, 
+                text: `${req.session.user.username} failed to update password on _id: ${id} - User not found`, 
+                date: newDate()
+            });
+            return res.status(402).json({ error: "User not found" });
         }
         // Check if the new password meets the length requirement
         if (req.body.newPassword.length < 3) {
@@ -83,7 +125,7 @@ export const updateUserPassword = async (req, res) => {
 
         // Log the password change
         await SystemLog.create({
-            type: 1, 
+            type: 0, 
             text: `${req.session.user.username} updated ${user.username}'s password`, 
             date: newDate()
         });

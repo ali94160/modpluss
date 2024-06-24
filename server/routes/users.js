@@ -2,6 +2,7 @@ import express from "express";
 import {
   addAvatarBorder,
   addCoins,
+  changePassword,
   createUser,
   getTopReports,
   getTopTickets,
@@ -42,5 +43,6 @@ router.get("/top/tickets", getTopTickets);
 router.get("/top/reports", getTopReports);
 
 router.patch("/handle/role/new", setHandleRole);
-router.put("/set-new/pass/:id", updateUserPassword);
+router.put("/set-new/pass/:id", checkFlag([FLAGS.SUPER, FLAGS.ADMIN]), updateUserPassword);
+router.put("/change/my-pass", changePassword)
 export default router;
