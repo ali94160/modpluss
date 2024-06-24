@@ -71,7 +71,7 @@ export const changePassword = async (req, res) => {
         if (!user) {
             return res.status(404).json({ error: "User not found" });
         }
-        if(user._id !== req.session.user._id){
+        if (!user._id.equals(mongoose.Types.ObjectId(req.session.user._id))) {
             return res.status(409).json({ error: "Unauthorized" });
         }
         // Check if the new password meets the length requirement
