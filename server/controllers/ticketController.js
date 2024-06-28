@@ -20,6 +20,16 @@ export const getTicketsByUsername = async (req, res) => {
   }
 };
 
+export const getMyUnresolvedTicketCount = async (req, res) => {
+  try {
+    const { username } = req.session.user;
+    const unresolvedTicketCount = await Ticket.countDocuments({ handler: username, resolved: false });
+    res.status(200).json({ MyTicketCount: unresolvedTicketCount });
+  } catch (error) {
+    res.status(404).json({ message: 'Unable to retrieve ticket count' });
+  }
+};
+
 export const updateTicket = async (req, res) => {
   try {
     const ticket = await Ticket.findOneAndUpdate(
