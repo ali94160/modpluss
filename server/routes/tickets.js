@@ -16,5 +16,5 @@ router.patch("/", updateTicket)
 router.delete("/", checkFlag([FLAGS.ADMIN, FLAGS.SUPER]), removeAllTickets)
 
 router.delete("/my-tickets", removeMyTickets)
-router.get("/my-tickets", getMyUnresolvedTicketCount)
+router.get("/my-tickets/count", getMyUnresolvedTicketCount)
 export default router;
