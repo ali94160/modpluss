@@ -1,5 +1,7 @@
 import { Report } from "../models/Report.js";
+import { SystemLog } from "../models/System.js";
 import { User } from "../models/User.js";
+import { newDate } from "./systemController.js";
 
 export const addReport = async (req, res) => {
     try {
@@ -45,6 +47,7 @@ export const getTotalReports = (req, res) => {
 export const removeAllReports = async (req, res) => {
     try {
       const result = await Report.deleteMany({});
+      await SystemLog.create({ type: 0, text: `${req.session.user.username} has removed everyones reports`, date: newDate()})
       res.status(200).json(result);
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -54,6 +57,7 @@ export const removeAllReports = async (req, res) => {
 export const removeMyReports = async (req, res) => {
     try {
       await Report.deleteMany({ handler: req.session.user.username });
+      await SystemLog.create({ type: 0, text: `${req.session.user.username} has removed all their reports`, date: newDate()})
       res.status(200).json({ message: "Your reports has been removed" });
     } catch (error) {
       res.status(500).json({ error: error.message });

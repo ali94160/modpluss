@@ -1,5 +1,7 @@
+import { SystemLog } from "../models/System.js";
 import { Ticket } from "../models/Ticket.js";
 import { User } from "../models/User.js";
+import { newDate } from "./systemController.js";
 
 export const getTickets = async (req, res) => {
   try {
@@ -53,7 +55,6 @@ export const addNewTicket = async (req, res) => {
           { username: req.body.handler }, 
           { $inc: { allTimeTickets: 1 } }
       );
-      console.log(req.body, ' req body')
       res.status(200).json({ message: "Ticket has been added" });
   } catch (error) {
       res.status(400).json({ error: error.message });
@@ -63,6 +64,7 @@ export const addNewTicket = async (req, res) => {
 export const removeAllTickets = async (req, res) => {
   try {
     const result = await Ticket.deleteMany({});
+    await SystemLog.create({ type: 0, text: `${req.session.user.username} has removed everyones tickets`, date: newDate()})
     res.status(200).json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -72,6 +74,7 @@ export const removeAllTickets = async (req, res) => {
 export const removeMyTickets = async (req, res) => {
   try {
     await Ticket.deleteMany({ handler: req.session.user.username });
+    await SystemLog.create({ type: 0, text: `${req.session.user.username} has removed their tickets`, date: newDate()})
     res.status(200).json({ message: "Your tickets has been removed" });
   } catch (error) {
     res.status(500).json({ error: error.message });

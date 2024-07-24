@@ -112,11 +112,61 @@ export const buySkin = async (req, res) => {
       },
       { new: true }
     );
-
+    await SystemLog.create({ //logging
+      type: 0, 
+      text: `${req.session.user.username} has bought: ${skin.title}`, 
+      date: newDate()
+    });
     res.status(200).json(user);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 };
 
+// SellSkin (id, auth)
+export const sellSkin = async (req, res) => {
+  try {
+    if (!req.session.user) {
+      return res.status(404).json({ error: "User not logged in" });
+    }
+
+    const { skinId } = req.body.skinId;
+
+    // Find the skin by ID
+    const skin = await Skin.findById(skinId);
+    if (!skin) {
+      return res.status(404).json({ error: "Skin not found" });
+    }
+
+    // Check if the skin belongs to the user
+    const user = await User.findById(req.session.user._id);
+    if (!user.skins.includes(skinId)) {
+      return res.status(400).json({ error: "Skin does not belong to user" });
+    }
+
+    // Calculate the amount to return to the user
+    const refundAmount = skin.price * 0.7;
+
+    // Remove the skin from the user's skins array and update coins
+    const updatedUser = await User.findByIdAndUpdate(
+      req.session.user._id,
+      {
+        $pull: { skins: skinId },
+        $inc: { coins: refundAmount },
+      },
+      { new: true }
+    );
+
+    // Remove the skin from the database if needed
+    await Skin.findByIdAndDelete(skinId);
+    await SystemLog.create({ //logging
+      type: 0, 
+      text: `${req.session.user.username} has sold: ${skin.title} for ${refundAmount}`, 
+      date: newDate()
+    });
+    res.status(200).json(updatedUser);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
 // getAllSkins - för store, för att en Super ska kunna ändra priset på dem.
