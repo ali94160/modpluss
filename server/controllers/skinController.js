@@ -133,7 +133,7 @@ export const sellSkin = async (req, res) => {
     const { skinId } = req.body.skinId;
 
     // Find the skin by ID
-    const skin = await Skin.findById(skinId);
+    const skin = await Skin.findById({ _id: skinId });
     if (!skin) {
       return res.status(404).json({ error: "Skin not found" });
     }
