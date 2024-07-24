@@ -123,7 +123,6 @@ export const buySkin = async (req, res) => {
   }
 };
 
-// SellSkin (id, auth)
 export const sellSkin = async (req, res) => {
   try {
     if (!req.session.user) {
