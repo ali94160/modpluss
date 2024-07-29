@@ -130,6 +130,7 @@ export const sellSkin = async (req, res) => {
     }
 
     const { skinId } = req.body.skinId;
+    console.log("__________", skinId , 'SKIN_ID?', req.body , "__________")
 
     // Find the skin by ID
     const skin = await Skin.findById({ _id: skinId });
