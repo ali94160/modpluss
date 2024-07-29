@@ -129,8 +129,7 @@ export const sellSkin = async (req, res) => {
       return res.status(404).json({ error: "User not logged in" });
     }
 
-    const { skinId } = req.body.skinId;
-    console.log("__________", skinId , 'SKIN_ID?', req.body , "__________")
+    const { skinId } = req.body;
 
     // Find the skin by ID
     const skin = await Skin.findById({ _id: skinId });
