@@ -276,7 +276,6 @@ export const addAvatarBorder = async (req, res) => { // buying avatarBorder
 
 export const setHandleRole = async (req, res) => {
     try {
-        console.log(req.body, ' req body????????????????');
         // Await the User.findOneAndUpdate call
         const user = await User.findOneAndUpdate(
             { _id: req.session.user._id },
@@ -295,3 +294,44 @@ export const setHandleRole = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 }
+
+export const getDailyCaseReward = async (req, res) => {
+    try {
+      // Get the current user
+      const user = await User.findById(req.session.user._id);
+  
+      // Get the current date and only keep year, month, and day (ignoring time)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Set time to midnight for comparison
+  
+      // Check if the user has already claimed today
+      const lastClaimed = new Date(user.lastClaimed);
+      lastClaimed.setHours(0, 0, 0, 0); // Also normalize the lastClaimed date
+  
+      if (lastClaimed.getTime() === today.getTime()) {
+        return res.status(400).json({ message: "You have already claimed your daily reward today." });
+      }
+  
+      // If not claimed today, increment modCases and update lastClaimed
+      const updatedUser = await User.findOneAndUpdate(
+        { _id: req.session.user._id },
+        {
+          $inc: { modCases: 1 },
+          $set: { lastClaimed: new Date() }, // Update lastClaimed to current date
+        },
+        { new: true }
+      ).hint({ $natural: -1 }); // Force MongoDB to ignore cache and perform a fresh query
+      
+      await SystemLog.create({
+        type: 0,
+        text: `${req.session.user.username} has claimed their daily case reward`,
+        date: newDate()
+      });
+      
+      res.status(200).json(updatedUser); 
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  };
+  
+  
