@@ -242,14 +242,14 @@ export const updateBalance = async (req, res) => {
         if (req.session.user) {
             const currentCoins = req.session.user.coins;
             const didWin = balanceNew > currentCoins;
-        
+            const winAmount = didWin ? balanceNew - currentCoins : currentCoins - balanceNew;
             const user = await User.findOneAndUpdate(
                 { username: req.session.user.username },
                 { $set: { coins: balanceNew } }, 
                 { new: true }
             );
 
-            await SystemLog.create({ type: 0, text: `${req.session.user.username} just ${didWin ? " WON " : " LOST "} ${coinsNew} on casino.`, date: newDate() });
+            await SystemLog.create({ type: 0, text: `${req.session.user.username} just ${didWin ? " WON " : " LOST "} ${winAmount} on casino.`, date: newDate() });
             res.status(200).json(user.coins);
         } else {
             await SystemLog.create({ type: 1, text: `No user in session found`, date: newDate() });
