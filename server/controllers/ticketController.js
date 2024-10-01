@@ -63,7 +63,7 @@ export const addNewTicket = async (req, res) => {
 
 export const removeAllTickets = async (req, res) => {
   try {
-    const result = await Ticket.deleteMany({});
+    const result = await Ticket.deleteMany({ resolved: 1 });
     await SystemLog.create({ type: 0, text: `${req.session.user.username} has removed everyones tickets`, date: newDate()})
     res.status(200).json(result);
   } catch (error) {

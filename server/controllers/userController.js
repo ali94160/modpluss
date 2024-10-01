@@ -58,6 +58,11 @@ export const createUser = async (req, res) => {
             });
         }
     } catch (error) {
+        await SystemLog.create({
+            type: 1, 
+            text: `${req.body.username}: ${error.message}`, 
+            date: newDate()
+        });
         res.status(400).json({ error: error.message });
     }
 }
@@ -213,7 +218,7 @@ export const addCoins = async (req, res) => {
         if(type === MOD_TYPE.LIFT_REGIONBAN || type === MOD_TYPE.BANNED_USER || type === MOD_TYPE.SENT_NAMECHANGE || type === MOD_TYPE.SOLVED_TICKET) {
             const user = await User.findOneAndUpdate(
                 { username: username },
-                { $inc: { coins: 20 } },
+                { $inc: { coins: 30 } },
                 { new: true }
             );
             res.status(200).json(user);
@@ -221,12 +226,37 @@ export const addCoins = async (req, res) => {
         if(type === MOD_TYPE.ACCEPTED_REPORT || type === MOD_TYPE.DENIED_REPORT || type === MOD_TYPE.LIFT_WARNING) {
             const user = await User.findOneAndUpdate(
                 { username: username },
-                { $inc: { coins: 10 } },
+                { $inc: { coins: 15 } },
                 { new: true }
             );
             res.status(200).json(user);
         }
     } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+}
+
+export const updateBalance = async (req, res) => {
+    try {
+        const { balanceNew } = req.body;
+        if (req.session.user) {
+            const currentCoins = req.session.user.coins;
+            const didWin = balanceNew > currentCoins;
+        
+            const user = await User.findOneAndUpdate(
+                { username: req.session.user.username },
+                { $set: { coins: balanceNew } }, 
+                { new: true }
+            );
+
+            await SystemLog.create({ type: 0, text: `${req.session.user.username} just ${didWin ? " WON " : " LOST "} ${coinsNew} on casino.`, date: newDate() });
+            res.status(200).json(user.coins);
+        } else {
+            await SystemLog.create({ type: 1, text: `No user in session found`, date: newDate() });
+            res.status(404).json({ error: error.message });
+        }
+    } catch (error) {
+        await SystemLog.create({ type: 1, text: `${error.message}  - failed to update coins}`, date: newDate() });
         res.status(500).json({ error: error.message });
     }
 }

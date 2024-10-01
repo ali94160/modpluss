@@ -13,6 +13,7 @@ import {
   updateAllUsers,
   updateAvatar,
   updateAvatarBorder,
+  updateBalance,
   updateUser,
   updateUserPassword,
   updateUserQueuePermission,
@@ -38,6 +39,8 @@ router.patch("/border/change-border", updateAvatarBorder);
 router.patch("/border/add/border", addAvatarBorder)
 
 router.patch("/give-coins/auto", addCoins);
+
+router.patch("/gamble/coins/new-coins", updateBalance);
 
 router.get("/top/tickets", getTopTickets);
 
