@@ -238,28 +238,49 @@ export const addCoins = async (req, res) => {
 
 export const updateBalance = async (req, res) => {
     try {
-        const { balanceNew } = req.body;
+        const { balanceNew, game } = req.body;
         if (req.session.user) {
             const currentCoins = req.session.user.coins;
             const didWin = balanceNew > currentCoins;
-            const winAmount = didWin ? balanceNew - currentCoins : currentCoins - balanceNew;
+            const winAmount = Math.abs(balanceNew - currentCoins);  // Fixed winAmount calculation
+
             const user = await User.findOneAndUpdate(
                 { username: req.session.user.username },
                 { $set: { coins: balanceNew } }, 
                 { new: true }
             );
+            
+            if (game !== "Mines"){
+                const winCount = await SystemLog.countDocuments({ text: /WON/ });
+                const lossCount = await SystemLog.countDocuments({ text: /LOST/ });
+                
+                await SystemLog.create({ 
+                    type: 0, 
+                    text: `[${game}] ${req.session.user.username} ${didWin ? " WON" : " LOST"} ${winAmount} coins. Total winning Bets: ${winCount} - Losing Bets: ${lossCount}`, 
+                    date: newDate() 
+                });
+            }
 
-            await SystemLog.create({ type: 0, text: `${req.session.user.username} just ${didWin ? " WON " : " LOST "} ${winAmount} on casino.`, date: newDate() });
             res.status(200).json(user.coins);
         } else {
-            await SystemLog.create({ type: 1, text: `No user in session found`, date: newDate() });
-            res.status(404).json({ error: error.message });
+            await SystemLog.create({ 
+                type: 1, 
+                text: `No user in session found`, 
+                date: newDate() 
+            });
+            res.status(404).json({ error: "No user in session." });
         }
     } catch (error) {
-        await SystemLog.create({ type: 1, text: `${error.message}  - failed to update coins}`, date: newDate() });
+        // Log any errors
+        await SystemLog.create({ 
+            type: 1, 
+            text: `${error.message} - failed to update coins`, 
+            date: newDate() 
+        });
         res.status(500).json({ error: error.message });
     }
 }
+
 
 // top 10 tickets
 // Get all users

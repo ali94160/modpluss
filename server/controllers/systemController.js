@@ -2,9 +2,13 @@ import { User } from "../models/User.js";
 import { SystemMessage, SystemGiveaway, SystemLog, SystemAdminCall } from "../models/System.js";
 import { Skin } from "../models/Skin.js";
 
-// Date formatter:
 export function newDate() {
   const date = new Date();
+
+  // Offset in minutes for Central European Time (CET/CEST)
+  const offsetMinutes = date.getTimezoneOffset() + 120; // CET is UTC+1, but +60 more during daylight saving (CEST)
+  date.setMinutes(date.getMinutes() + offsetMinutes); // Adjust time to CET/CEST
+  
   // Options to format only the date
   const dateOptions = {
     year: 'numeric',
@@ -20,17 +24,19 @@ export function newDate() {
   };
   const formattedDateParts = date.toLocaleDateString(undefined, dateOptions).split(/\D/);
   let year, month, day;
-  
+
   if (formattedDateParts[0].length === 4) {
     [year, month, day] = formattedDateParts;
   } else {
     [day, month, year] = formattedDateParts;
   }
+  
   const formattedDateString = `${year}/${month}/${day}`;
   // Format the time using the user's local settings
   const formattedTimeString = date.toLocaleTimeString(undefined, timeOptions);
   return `${formattedDateString} ${formattedTimeString}`;
 }
+
 
 let intervalId = null;
 export const createSystemMessage = async (req, res) => {
@@ -326,7 +332,6 @@ export const checkAndPickWinner = async (req, res) => {
 
   export const addLogging = async (req, res) => { 
     try {
-      console.log(" WATTT ", req.body)
         await SystemLog.create(req.body);
         await res.status(200);
     } catch (error) {
