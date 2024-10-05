@@ -342,7 +342,6 @@ export const checkAndPickWinner = async (req, res) => {
 // Admin calls CRUD:
 export const addAdminCallText = async (req, res) => { 
   try {
-    console.log(req.body, req.body.adminCallText , " _____ REQ ____")
       const newAdminCallText = await SystemAdminCall.create(req.body);
       await res.status(200).json({ newAdminCallText: newAdminCallText});
   } catch (error) {

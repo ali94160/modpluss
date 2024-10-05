@@ -249,14 +249,19 @@ export const updateBalance = async (req, res) => {
                 { $set: { coins: balanceNew } }, 
                 { new: true }
             );
-            
-            if (game !== "Mines"){
-                const winCount = await SystemLog.countDocuments({ text: /WON/ });
-                const lossCount = await SystemLog.countDocuments({ text: /LOST/ });
-                
+
+            if (game !== "Mines") {
+                // Count wins and losses excluding those with "0" after "WON" or "LOST"
+                const winCount = await SystemLog.countDocuments({
+                    text: { $regex: /WON (?!0\b)(\d+)/ } // Match "WON" followed by a space and any number not equal to 0
+                });
+                const lossCount = await SystemLog.countDocuments({
+                    text: { $regex: /LOST (?!0\b)(\d+)/ } // Match "LOST" followed by a space and any number not equal to 0
+                });
+
                 await SystemLog.create({ 
                     type: 0, 
-                    text: `[${game}] ${req.session.user.username} ${didWin ? " WON" : " LOST"} ${winAmount} coins. Total winning Bets: ${winCount} - Losing Bets: ${lossCount}`, 
+                    text: `[${game}] ${req.session.user.username} ${didWin ? "WON" : "LOST"} ${winAmount} coins. Total winning Bets: ${winCount} - Losing Bets: ${lossCount}`, 
                     date: newDate() 
                 });
             }
@@ -280,6 +285,7 @@ export const updateBalance = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 }
+
 
 
 // top 10 tickets
