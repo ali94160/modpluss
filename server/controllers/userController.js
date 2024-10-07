@@ -218,7 +218,7 @@ export const addCoins = async (req, res) => {
         if(type === MOD_TYPE.LIFT_REGIONBAN || type === MOD_TYPE.BANNED_USER || type === MOD_TYPE.SENT_NAMECHANGE || type === MOD_TYPE.SOLVED_TICKET) {
             const user = await User.findOneAndUpdate(
                 { username: username },
-                { $inc: { coins: 30 } },
+                { $inc: { coins: 75 } },
                 { new: true }
             );
             res.status(200).json(user);
@@ -226,7 +226,7 @@ export const addCoins = async (req, res) => {
         if(type === MOD_TYPE.ACCEPTED_REPORT || type === MOD_TYPE.DENIED_REPORT || type === MOD_TYPE.LIFT_WARNING) {
             const user = await User.findOneAndUpdate(
                 { username: username },
-                { $inc: { coins: 15 } },
+                { $inc: { coins: 35 } },
                 { new: true }
             );
             res.status(200).json(user);

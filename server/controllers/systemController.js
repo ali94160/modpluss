@@ -1,6 +1,7 @@
 import { User } from "../models/User.js";
 import { SystemMessage, SystemGiveaway, SystemLog, SystemAdminCall, SystemCasino } from "../models/System.js";
 import { Skin } from "../models/Skin.js";
+import { insertAchievements } from "./achievement.js";
 
 export function newDate() {
   const date = new Date();
@@ -405,6 +406,7 @@ export const getCasinoConfig = async (req, res) => {
 export const updateCasinoConfig = async (req, res) => {
   const { disableCasino } = req.body;
   try {
+    await insertAchievements() //  TA BORT EFTER 1 ggr
     const updatedConfig = await SystemCasino.findOneAndUpdate(
       {}, // Match criteria (empty object to find any document)
       { disableCasino: disableCasino }, // Update field
