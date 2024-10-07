@@ -1,4 +1,4 @@
-import { Achievement } from '../models/Achievement';
+import { Achievement } from '../models/Achievement.js';
 
 const achievementsList = [
     { src: 'beta_tester', title: 'Beta Tester', desc: "BETA tester of Mod+", value: 0 },
