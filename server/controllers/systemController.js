@@ -406,14 +406,20 @@ export const updateCasinoConfig = async (req, res) => {
   const { disableCasino } = req.body;
   try {
     const updatedConfig = await SystemCasino.findOneAndUpdate(
-      {}, // Match criteria, assuming there's only one document
-      { disableCasino: disableCasino }, 
-      { new: true } 
+      {}, // Match criteria (empty object to find any document)
+      { disableCasino: disableCasino }, // Update field
+      { new: true, upsert: true } // 'upsert' creates a new document if none is found
     );
-    await SystemLog.create({ type: 0, text: `${req.session.user.username} set the casino-disable to: ${disableCasino+''}`, date: newDate()})
+    
+    await SystemLog.create({ 
+      type: 0, 
+      text: `${req.session.user.username} set the casino-disable to: ${disableCasino}`, 
+      date: newDate() 
+    });
+
     res.status(200).json(updatedConfig);
   } catch (error) {
     console.error('Error updating casino config:', error);
-    throw error;
+    res.status(500).json({ error: 'Failed to update casino config' }); 
   }
 };
