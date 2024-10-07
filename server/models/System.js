@@ -33,6 +33,10 @@ const systemAdminCallSchema = new Schema({
   inUse: { type: Boolean }
 });
 
+const systemCasinoSchema = new Schema({
+  disableCasino: { type: Boolean }
+});
+
 export const SystemMessage = mongoose.model(
   "SystemMessage",
   systemMessageSchema
@@ -51,4 +55,9 @@ export const SystemAdminCall = mongoose.model(
 export const SystemLog = mongoose.model(
   "SystemLog",
   systemLogSchema
+);
+
+export const SystemCasino = mongoose.model(
+  "SystemCasino",
+  systemCasinoSchema
 );

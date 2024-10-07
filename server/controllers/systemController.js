@@ -1,5 +1,5 @@
 import { User } from "../models/User.js";
-import { SystemMessage, SystemGiveaway, SystemLog, SystemAdminCall } from "../models/System.js";
+import { SystemMessage, SystemGiveaway, SystemLog, SystemAdminCall, SystemCasino } from "../models/System.js";
 import { Skin } from "../models/Skin.js";
 
 export function newDate() {
@@ -292,8 +292,7 @@ export const checkAndPickWinner = async (req, res) => {
 
   export const getLastGiveaway = async (req, res) => {
     const lastGiveaway = await SystemGiveaway.findOne().sort({ _id: -1 }).populate('winner');
-    let latest = await lastGiveaway.save({ new: true })
-    console.log("_________ LATEST ______", latest, " + ", lastGiveaway)
+    let latest = await lastGiveaway.save({ new: true });
     res.status(200).json(latest);
   }
 
@@ -344,6 +343,7 @@ export const addAdminCallText = async (req, res) => {
   try {
       const newAdminCallText = await SystemAdminCall.create(req.body);
       await res.status(200).json({ newAdminCallText: newAdminCallText});
+      await SystemLog.create({ type: 0, text: `${req.session.user.username} added a new admin call row in the list.`, date: newDate()})
   } catch (error) {
       res.status(500).json({ error: error.message });
   }
@@ -364,6 +364,7 @@ export const deleteAdmincAllsTextById = async (req, res) => {
     await SystemAdminCall.deleteMany({ _id: { $in: id } });
 
     res.status(200).json({ message: "Admin call text removed" });
+    await SystemLog.create({ type: 0, text: `${req.session.user.username} has removed an admin call text.`, date: newDate()})
   } catch (error) {
     console.error('Error deleting admin calls:', error);
     res.status(500).json({ message: "Internal server error" });
@@ -383,9 +384,36 @@ export const updateAdminCallText = async (req, res) => {
     if (!updatedAdminCallText) {
       return res.status(404).json({ error: 'SystemAdminCall not found' });
     }
-
+    await SystemLog.create({ type: 0, text: `${req.session.user.username} updated an admin call text.`, date: newDate()})
     return res.status(200).json({ updatedAdminCallText });
   } catch (error) {
     return res.status(500).json({ error: error.message });
+  }
+};
+
+
+export const getCasinoConfig = async (req, res) => {
+  try {
+    const casinoConfig = await SystemCasino.findOne(); // Retrieve the config (assuming there is only one document)
+    res.status(200).json(casinoConfig);
+  } catch (error) {
+    console.error('Error getting casino config:', error);
+    throw error; 
+  }
+};
+
+export const updateCasinoConfig = async (req, res) => {
+  const { disableCasino } = req.body;
+  try {
+    const updatedConfig = await SystemCasino.findOneAndUpdate(
+      {}, // Match criteria, assuming there's only one document
+      { disableCasino: disableCasino }, 
+      { new: true } 
+    );
+    await SystemLog.create({ type: 0, text: `${req.session.user.username} set the casino-disable to: ${disableCasino+''}`, date: newDate()})
+    res.status(200).json(updatedConfig);
+  } catch (error) {
+    console.error('Error updating casino config:', error);
+    throw error;
   }
 };
