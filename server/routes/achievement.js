@@ -1,6 +1,6 @@
 import express from "express";
 import { addAchievement, getAchievements } from "../controllers/achievement.js";
-import { checkFlag } from "../middlewares/roles.js";
+import { checkFlag, FLAGS } from "../middlewares/roles.js";
 
 const router = express.Router();
 
