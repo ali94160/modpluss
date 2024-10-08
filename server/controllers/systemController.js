@@ -1,7 +1,6 @@
 import { User } from "../models/User.js";
 import { SystemMessage, SystemGiveaway, SystemLog, SystemAdminCall, SystemCasino } from "../models/System.js";
 import { Skin } from "../models/Skin.js";
-import { insertAchievements } from "./achievement.js";
 
 export function newDate() {
   const date = new Date();
