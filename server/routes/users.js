@@ -8,6 +8,7 @@ import {
   getTopReports,
   getTopTickets,
   getUser,
+  getUserByUsername,
   getUsers,
   setHandleRole,
   updateAllUsers,
@@ -25,7 +26,8 @@ const router = express.Router();
 
 router.get("/", getUsers);
 
-router.get("/:id", getUser); // kommer in som req.body?
+router.get("/:id", getUser); 
+router.get("/get-single-user/by-username/:username", getUserByUsername)
 router.post("/", createUser);
 
 router.patch("/gift/all-users", checkFlag([FLAGS.SUPER]), updateAllUsers);

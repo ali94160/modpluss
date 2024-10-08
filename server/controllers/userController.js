@@ -35,6 +35,25 @@ export const getUser = async (req, res) => {
     res.status(200).json(user);
 }   
 
+// get single user by username - used in contentScript
+export const getUserByUsername = async (req, res) => {
+    try {
+        const { username } = req.params;
+            
+        const user = await User.findById({ username }, { password: 0 })
+        if(!user) return res.status(404).json({error: "User doesn't exist"})
+        res.status(200).json(user);
+        
+    } catch (error) {
+        await SystemLog.create({
+            type: 1, 
+            text: `UserController.getUserByUsername: ${error?.message}`, 
+            date: newDate()
+        });
+        res.status(404).json({ error: error.message });
+    }
+}
+
 // register
 export const createUser = async (req, res) => {
     try {

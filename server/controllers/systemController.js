@@ -406,7 +406,7 @@ export const getCasinoConfig = async (req, res) => {
 export const updateCasinoConfig = async (req, res) => {
   const { disableCasino } = req.body;
   try {
-    await insertAchievements() //  TA BORT EFTER 1 ggr
+
     const updatedConfig = await SystemCasino.findOneAndUpdate(
       {}, // Match criteria (empty object to find any document)
       { disableCasino: disableCasino }, // Update field
