@@ -16,7 +16,7 @@ config({ path: "../.env" });
 const app = express();
 // Configure CORS
 const corsOptions = {
-  origin: ["https://old.esportal.com"], 
+  origin: "https://old.esportal.com", 
   optionsSuccessStatus: 200, // For legacy browser support
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   allowedHeaders: "Content-Type,Authorization",
@@ -44,9 +44,6 @@ app.use("/api/esportal-logs", esportalLogs);
 app.use("/api/reports", reportRoutes)
 app.use("/api/achievements", achievementRoutes);
 
-app.options("/api/users", cors(corsOptions));
-app.options("/api/achievements/list", cors(corsOptions));
-app.options("/api/achievements/add", cors(corsOptions));
 const PORT = process.env.PORT;
 
 mongoose.connect(process.env.MONGODB_URI).then(() => {
