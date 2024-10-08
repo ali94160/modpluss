@@ -42,7 +42,7 @@ app.use("/api/tickets", ticketRoute);
 app.use("/api/skins", skinRoutes);
 app.use("/api/esportal-logs", esportalLogs);
 app.use("/api/reports", reportRoutes)
-app.use("/api//achievements", achievementRoutes);
+app.use("/api/achievements", achievementRoutes);
 
 const PORT = process.env.PORT;
 
