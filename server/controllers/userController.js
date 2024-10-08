@@ -12,6 +12,8 @@ const MOD_TYPE = {
     ACCEPTED_REPORT: "ACCEPTED_REPORT",
     DENIED_REPORT: "DENIED_REPORT",
     BANNED_USER: "BANNED_USER",
+    ACHIEVEMENT_TICKETS: "ACHIEVEMENT_TICKETS",
+    ACHIEVEMENT_REPORTS: "ACHIEVEMENT_REPORTS"
 }
 
 // Get all users
@@ -249,6 +251,14 @@ export const addCoins = async (req, res) => {
             );
             res.status(200).json(user);
         }
+        if(type === MOD_TYPE.ACHIEVEMENT_TICKETS || type === MOD_TYPE.ACHIEVEMENT_REPORTS) {
+            const user = await User.findOneAndUpdate(
+                { username: username },
+                { $inc: { coins: 35 } },
+                { new: true }
+            );
+            res.status(200).json(user);
+        }
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -289,7 +299,7 @@ export const updateBalance = async (req, res) => {
 // Get all users
 export const getTopTickets = async (req, res) => {
     try {
-        const top10 = await User.find({}, { password: 0, skins: 0 })
+        const top10 = await User.find({}, { password: 0, skins: 0 }).populate('achievements')
         .sort({ allTimeTickets: -1 })
         .limit(10);
         res.status(200).json(top10);
@@ -300,7 +310,7 @@ export const getTopTickets = async (req, res) => {
 
 export const getTopReports = async (req, res) => {
     try {
-        const top10 = await User.find({}, { password: 0, skins: 0 })
+        const top10 = await User.find({}, { password: 0, skins: 0 }).populate('achievements')
         .sort({ allTimeReports: -1 })
         .limit(10);
         res.status(200).json(top10);
