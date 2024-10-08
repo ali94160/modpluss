@@ -233,7 +233,7 @@ export const updateAvatarBorder = async (req, res) => {
 
 export const addCoins = async (req, res) => {
     try {
-        const { username, type } = req.body;
+        const { username, type, customCoins } = req.body;
         if(!username) return status(404).json({ error: "User not found"});
         if(type === MOD_TYPE.LIFT_REGIONBAN || type === MOD_TYPE.BANNED_USER || type === MOD_TYPE.SENT_NAMECHANGE || type === MOD_TYPE.SOLVED_TICKET) {
             const user = await User.findOneAndUpdate(
@@ -254,7 +254,7 @@ export const addCoins = async (req, res) => {
         if(type === MOD_TYPE.ACHIEVEMENT_TICKETS || type === MOD_TYPE.ACHIEVEMENT_REPORTS) {
             const user = await User.findOneAndUpdate(
                 { username: username },
-                { $inc: { coins: 35 } },
+                { $inc: { coins: customCoins } },
                 { new: true }
             );
             res.status(200).json(user);
