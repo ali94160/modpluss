@@ -1,5 +1,5 @@
 import express from "express";
-import { addAchievement, getAchievements } from "../controllers/achievement.js";
+import { addAchievement, getAchievements } from "../controllers/achievementController.js";
 import { checkFlag, FLAGS } from "../middlewares/roles.js";
 
 const router = express.Router();
