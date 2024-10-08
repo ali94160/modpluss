@@ -40,7 +40,7 @@ export const getUserByUsername = async (req, res) => {
     try {
         const {username}  = req.params;
             
-        const user = await User.findOne({ username }, { password: 0 });
+        const user = await User.findOne({ username }, { password: 0 }).populate('Achievements');
         if(!user) return res.status(404).json({error: "User doesn't exist"})
         res.status(200).json(user);
         
