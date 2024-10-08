@@ -46,7 +46,7 @@ export const getUserByUsername = async (req, res) => {
     } catch (error) {
         await SystemLog.create({
             type: 1, 
-            text: `UserController.getUserByUsername: ${error?.message}`, 
+            text: `getUserByUsername: ${error?.message}`, 
             date: newDate()
         });
         res.status(404).json({ error: error.message });

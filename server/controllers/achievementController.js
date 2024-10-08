@@ -26,7 +26,7 @@ import { newDate } from './systemController.js';
 export const addAchievement = async (req, res) => {
     try {
         const { src, username, addedByAdmin } = req.body; // Get the achievement src from request body
-
+        let hasAchievement;
         // Step 1: Find the achievement by src
         const achievement = await Achievement.findOne({ src }); // example: src = "Beta Tester"
         if (!achievement) {
@@ -39,9 +39,11 @@ export const addAchievement = async (req, res) => {
         }
 
         // Check if the achievement is already added to avoid duplicates
-        const hasAchievement = user.achievements.some(
-        (ach) => ach.toString() === achievement._id.toString()
-        );
+        if(user.achievements.length > 0){
+          hasAchievement = user.achievements.some(
+            (ach) => ach.toString() === achievement._id.toString()
+          );
+        }
 
         if (hasAchievement) {
         return res.status(400).json({ error: "Achievement already exists for this user" });
