@@ -33,7 +33,7 @@ export const addAchievement = async (req, res) => {
         return res.status(404).json({ error: "Achievement not found with the provided src" });
         }
 
-        const user = await User.findById({ username });
+        const user = await User.find({ username });
         if (!user) {
         return res.status(404).json({ error: "User not found" });
         }
