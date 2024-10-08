@@ -9,6 +9,7 @@ import ticketRoute from "./routes/tickets.js";
 import skinRoutes from "./routes/skin.js";
 import esportalLogs from "./routes/esportalLog.js";
 import reportRoutes from "./routes/report.js";
+import achievementRoutes from "./routes/achievement.js";
 import session from "express-session";
 
 config({ path: "../.env" });
@@ -41,6 +42,7 @@ app.use("/api/tickets", ticketRoute);
 app.use("/api/skins", skinRoutes);
 app.use("/api/esportal-logs", esportalLogs);
 app.use("/api/reports", reportRoutes)
+app.use("/api//achievements", achievementRoutes);
 
 const PORT = process.env.PORT;
 

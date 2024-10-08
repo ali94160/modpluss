@@ -65,6 +65,10 @@ export const addAchievement = async (req, res) => {
 
 
 export async function getAchievements(){
-
-
+  try {
+    const achievements = await Achievement.find({});
+    res.status(200).json(achievements);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
 }
