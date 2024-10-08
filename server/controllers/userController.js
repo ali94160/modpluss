@@ -38,7 +38,7 @@ export const getUser = async (req, res) => {
 // get single user by username - used in contentScript
 export const getUserByUsername = async (req, res) => {
     try {
-        const { username } = req.params;
+        const username  = req.params;
             
         const user = await User.findById({ username }, { password: 0 })
         if(!user) return res.status(404).json({error: "User doesn't exist"})
