@@ -267,12 +267,13 @@ export const addCoins = async (req, res) => {
 
 export const updateBalance = async (req, res) => {
     try {
+        let user = null;
         const { balanceNew, game } = req.body;
         if (req.session.user) {
-            if(balanceNew > 1000000 && req.session.user.achievements?.some((ach) => ach.src != "millionaire")) {
+            if(balanceNew >= 1000000 && req.session.user.achievements?.some((ach) => ach.src != "millionaire")) {
                 const achievement = await Achievement.findOne({ src: "millionaire" });
                 if (achievement) {
-                    await User.findOneAndUpdate(
+                    user = await User.findOneAndUpdate(
                         { username: req.session.user.username },
                         { 
                             $push: { achievements: achievement._id },
@@ -294,7 +295,7 @@ export const updateBalance = async (req, res) => {
                     });
                 }
             } else {
-                const user = await User.findOneAndUpdate(
+                user = await User.findOneAndUpdate(
                     { username: req.session.user.username },
                     { $set: { coins: balanceNew } }, 
                     { new: true }
