@@ -52,7 +52,9 @@ export const logoutUser = async (req, res) => {
 export const whoAmI = async (req, res) => {
     try {
         if (req.session.user) {
-            const latestUserData = await User.findOne({ _id: req.session.user._id }).populate('skins').exec();
+            const latestUserData = await User.findOne({ _id: req.session.user._id })
+            .populate([{ path: 'skins' }, { path: 'achievements' }])
+            .exec();
             req.session.user = latestUserData;
             res.status(200).json(latestUserData);
         } else {
