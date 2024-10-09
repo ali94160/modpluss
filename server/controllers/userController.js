@@ -270,7 +270,7 @@ export const updateBalance = async (req, res) => {
         let user = null;
         const { balanceNew, game } = req.body;
         if (req.session.user) {
-            if(balanceNew >= 1000000 && req.session.user.achievements?.some((ach) => ach.src != "millionaire")) {
+            if(balanceNew >= 1000000 && !req.session.user.achievements?.some((ach) => ach.src === "millionaire")) {
                 const achievement = await Achievement.findOne({ src: "millionaire" });
                 if (achievement) {
                     user = await User.findOneAndUpdate(
