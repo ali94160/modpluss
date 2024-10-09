@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import crypto from "crypto"
 import { newDate } from "./systemController.js";
 import { SystemLog } from "../models/System.js";
+import { Achievement} from "../models/Achievement.js"
 
 const MOD_TYPE = {
     SOLVED_TICKET: "SOLVED_TICKET",
@@ -268,11 +269,37 @@ export const updateBalance = async (req, res) => {
     try {
         const { balanceNew, game } = req.body;
         if (req.session.user) {
-            const user = await User.findOneAndUpdate(
-                { username: req.session.user.username },
-                { $set: { coins: balanceNew } }, 
-                { new: true }
-            );
+            if(balanceNew > 1000000 && req.session.user.achievements?.some((ach) => ach.src != "millionaire")) {
+                const achievement = await Achievement.findOne({ src: "millionaire" });
+                if (achievement) {
+                    await User.findOneAndUpdate(
+                        { username: req.session.user.username },
+                        { 
+                            $push: { achievements: achievement._id },
+                            $set: { coins: balanceNew }
+                        }, 
+                        { new: true }
+                    );
+
+                    await SystemLog.create({
+                        type: 0,
+                        text: `${req.session.user.username} has reached ${balanceNew} coins and earned the "millionaire" achievement!`,
+                        date: newDate()
+                    });
+                } else { // else if achievement somehow is lost, log it:
+                        await SystemLog.create({
+                        type: 1,
+                        text: `${req.session.user.username} has reached ${balanceNew} coins, but did NOT get the "millionaire" achievement.(Coins not payed out)`,
+                        date: newDate()
+                    });
+                }
+            } else {
+                const user = await User.findOneAndUpdate(
+                    { username: req.session.user.username },
+                    { $set: { coins: balanceNew } }, 
+                    { new: true }
+                );
+            }
             res.status(200).json(user.coins);
         } else {
             await SystemLog.create({ 
