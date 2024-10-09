@@ -269,10 +269,16 @@ export const updateBalance = async (req, res) => {
     try {
         let user = null;
         const { balanceNew, game } = req.body;
+
         if (req.session.user) {
-            if(balanceNew >= 1000000 && !req.session.user.achievements?.some((ach) => ach.src === "millionaire")) {
+            // Fetch the latest user data from the database
+            user = await User.findOne({ username: req.session.user.username }).populate('achievements');
+
+            if (balanceNew >= 1000000 && !user.achievements?.some((ach) => ach.src === "millionaire")) {
                 const achievement = await Achievement.findOne({ src: "millionaire" });
+                
                 if (achievement) {
+                    // Add the achievement and update the balance
                     user = await User.findOneAndUpdate(
                         { username: req.session.user.username },
                         { 
@@ -282,27 +288,32 @@ export const updateBalance = async (req, res) => {
                         { new: true }
                     );
 
+                    // Log the achievement
                     await SystemLog.create({
                         type: 0,
                         text: `${req.session.user.username} has reached ${balanceNew} coins and earned the "millionaire" achievement!`,
                         date: newDate()
                     });
-                } else { // else if achievement somehow is lost, log it:
-                        await SystemLog.create({
+                } else {
+                    // Log if achievement is not found
+                    await SystemLog.create({
                         type: 1,
                         text: `${req.session.user.username} has reached ${balanceNew} coins, but did NOT get the "millionaire" achievement.(Coins not payed out)`,
                         date: newDate()
                     });
                 }
             } else {
+                // Update the balance if no new achievement is earned
                 user = await User.findOneAndUpdate(
                     { username: req.session.user.username },
                     { $set: { coins: balanceNew } }, 
                     { new: true }
                 );
             }
+
             res.status(200).json(user.coins);
         } else {
+            // Log if no user in session
             await SystemLog.create({ 
                 type: 1, 
                 text: `No user in session found`, 
@@ -319,7 +330,8 @@ export const updateBalance = async (req, res) => {
         });
         res.status(500).json({ error: error.message });
     }
-}
+};
+
 
 
 
