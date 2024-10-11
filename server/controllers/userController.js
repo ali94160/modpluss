@@ -337,7 +337,7 @@ export const updateBalance = async (req, res) => {
 export const getTopTickets = async (req, res) => {
     try {
         const top10 = await User.find({}, { password: 0, skins: 0 })
-        .populate([{ path: 'achievements' }, { path: 'selectedAchievements' }])
+        .populate([{ path: 'achievements' }, { path: 'selectedAchievement' }])
         .sort({ allTimeTickets: -1 })
         res.status(200).json(top10);
     } catch (error) {
@@ -348,7 +348,7 @@ export const getTopTickets = async (req, res) => {
 export const getTopReports = async (req, res) => {
     try {
         const top10 = await User.find({}, { password: 0, skins: 0 })
-        .populate([{ path: 'achievements' }, { path: 'selectedAchievements' }])
+        .populate([{ path: 'achievements' }, { path: 'selectedAchievement' }])
         .sort({ allTimeReports: -1 })
         res.status(200).json(top10);
     } catch (error) {
