@@ -11,6 +11,7 @@ import {
   getUserByUsername,
   getUsers,
   setHandleRole,
+  setSelectedAchievement,
   updateAllUsers,
   updateAvatar,
   updateAvatarBorder,
@@ -52,4 +53,6 @@ router.patch("/handle/role/new", setHandleRole);
 router.patch("/reward/modcase/daily", getDailyCaseReward)
 router.put("/set-new/pass/:id", checkFlag([FLAGS.SUPER, FLAGS.ADMIN]), updateUserPassword);
 router.put("/change/my-pass", changePassword)
+
+router.patch("/set/achievement/change-by-id", setSelectedAchievement);
 export default router;

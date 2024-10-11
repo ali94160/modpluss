@@ -332,16 +332,13 @@ export const updateBalance = async (req, res) => {
     }
 };
 
-
-
-
 // top 10 tickets
 // Get all users
 export const getTopTickets = async (req, res) => {
     try {
-        const top10 = await User.find({}, { password: 0, skins: 0 }).populate('achievements')
+        const top10 = await User.find({}, { password: 0, skins: 0 })
+        .populate([{ path: 'achievements' }, { path: 'selectedAchievements' }])
         .sort({ allTimeTickets: -1 })
-        .limit(10);
         res.status(200).json(top10);
     } catch (error) {
         res.status(500).json({ message: "Internal Server Error" });
@@ -350,9 +347,9 @@ export const getTopTickets = async (req, res) => {
 
 export const getTopReports = async (req, res) => {
     try {
-        const top10 = await User.find({}, { password: 0, skins: 0 }).populate('achievements')
+        const top10 = await User.find({}, { password: 0, skins: 0 })
+        .populate([{ path: 'achievements' }, { path: 'selectedAchievements' }])
         .sort({ allTimeReports: -1 })
-        .limit(10);
         res.status(200).json(top10);
     } catch (error) {
         res.status(500).json({ message: "Internal Server Error" });
@@ -437,5 +434,36 @@ export const getDailyCaseReward = async (req, res) => {
       res.status(500).json({ error: error.message });
     }
   };
+
+  // Selected Achievement: > TODO: lägg till i fontend 
+  export const setSelectedAchievement = async (req, res) => {
+    try {
+      if (!req.session.user) return res.status(404).json({ error: "User not logged in" });
+  
+      const { newId } = req.body;
+      if (!newId) return res.status(400).json({ error: "Achievement ID is required" });
+  
+      const user = await User.findById(req.session.user._id);
+  
+      if (!user) return res.status(404).json({ error: "User not found" });
+  
+      // If the current selectedAchievement is the same as newId, unset it
+      if (user.selectedAchievement && user.selectedAchievement.toString() === newId) {
+        user.selectedAchievement = null;
+      } else {
+        // Otherwise, set the newId as the selected achievement
+        user.selectedAchievement = newId;
+      }
+  
+      // Save the updated user document
+      const updatedUser = await user.save();
+  
+      return res.status(200).json(updatedUser);
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  };
+  
+  
   
   

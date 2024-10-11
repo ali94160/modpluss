@@ -51,7 +51,9 @@ export const addAchievement = async (req, res) => {
         }
 
         user.achievements.push(achievement._id);
-
+        if(achievement.src === "millionaire"){
+            user.modCases += 5;
+        }
         await user.save();
 
         await SystemLog.create({
@@ -64,7 +66,7 @@ export const addAchievement = async (req, res) => {
     } catch (error) {
       return res.status(400).json({ error: error.message });
     }
-  };
+  }
 
 
 export async function getAchievements(req, res){

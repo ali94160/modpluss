@@ -36,7 +36,8 @@ export const userSchema = new Schema({
     src: { type: String, default: "classic_knife-1" },
     borderClass: { type: String, default: "avatar-0" },
   },
-  achievements: [{ type: Schema.Types.ObjectId, ref: "Achievement", default: [] }]
+  achievements: [{ type: Schema.Types.ObjectId, ref: "Achievement", default: [] }],
+  selectedAchievement: { type: Schema.Types.ObjectId, ref: "Achievement", default: null }
 });
 
 export const User = mongoose.model("User", userSchema);
