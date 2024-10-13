@@ -134,6 +134,7 @@ export const checkAndPickWinner = async (req, res) => {
         // SEND PRIZE
         let isModCoins = updatedGiveaway.skin.title === "Mod Coins";
         let isModCase = updatedGiveaway.skin.title === "Mod Case";
+        let isSuperModCase = updatedGiveaway.skin.title === "SUPER Mod Case";
         console.log(updatedGiveaway.skin.price, ' !!!! PRIZE !!!!');
         if (isModCoins) {
           await User.findByIdAndUpdate(
@@ -145,7 +146,13 @@ export const checkAndPickWinner = async (req, res) => {
             { _id: winnerUser._id },
             { $inc: { modCases: updatedGiveaway.skin.price } }
           );
-        } else {
+        } else if(isSuperModCase){
+          await User.findByIdAndUpdate(
+            { _id: winnerUser._id },
+            { $inc: { super_modCases: updatedGiveaway.skin.price } }
+          );
+        } 
+        else {
           const skin = await Skin.create(updatedGiveaway.skin);
           await User.findByIdAndUpdate(
             { _id: winnerUser._id },
