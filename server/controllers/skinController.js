@@ -34,7 +34,7 @@ export const addSkin = async (req, res) => {
     const skin = await Skin.create(req.body.skin);
     const user = await User.findByIdAndUpdate(
       { _id: req.session.user._id },
-      { $push: { skins: skin._id }, modCases: req.session.user.modCases },
+      { $push: { skins: skin._id }, modCases: req.session.user.modCases, super_modCases: req.session.user.super_modCases },
       { new: true }
     );
     await SystemLog.create({ //logging
