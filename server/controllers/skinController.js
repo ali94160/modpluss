@@ -11,8 +11,9 @@ export const addSkin = async (req, res) => {
     if (req.session.user.modCases <= 0) {
       return res.status(404).json({ error: "You don't have any Modcases" });
     }
-    const { isSuper } = req.body.isSuperCase
-    if(isSuper){
+    const { isSuperCase } = req.body
+
+    if(isSuperCase){
       req.session.user.super_modCases -= 1;
     } else {
       req.session.user.modCases -= 1;
@@ -27,7 +28,7 @@ export const addSkin = async (req, res) => {
       );
       await SystemLog.create({ //logging
         type: 0, 
-        text: `${req.session.user.username} just got a drop from ${isSuper ? "Super Mod Case" : "Mod Case"}: x${req.body.skin.price} ${req.body.skin.title}`, 
+        text: `${req.session.user.username} just got a drop from ${isSuperCase ? "Super Mod Case" : "Mod Case"}: x${req.body.skin.price} ${req.body.skin.title}`, 
         date: newDate()
       });
       return res.status(200).json(user);
