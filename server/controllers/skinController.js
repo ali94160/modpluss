@@ -26,7 +26,7 @@ export const addSkin = async (req, res) => {
       req.session.user.coins += req.body.skin.price; // Add coins to the user's coins property
       const user = await User.findByIdAndUpdate(
         { _id: req.session.user._id },
-        { coins: req.session.user.coins, modCases: req.session.user.modCases },
+        { coins: req.session.user.coins, modCases: req.session.user.modCases, super_modCases: req.session.user.super_modCases },
         { new: true }
       );
       await SystemLog.create({ //logging
