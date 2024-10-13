@@ -8,10 +8,13 @@ import { newDate } from "./systemController.js";
 
 export const addSkin = async (req, res) => {
   try {
-    if (req.session.user.modCases <= 0) {
+    const { isSuperCase } = req.body
+    if (req.session.user.modCases <= 0 && !isSuperCase) {
       return res.status(404).json({ error: "You don't have any Modcases" });
     }
-    const { isSuperCase } = req.body
+    if (req.session.user.super_modCases <= 0 && isSuperCase) {
+      return res.status(404).json({ error: "You don't have any Super Modcases" });
+    }
 
     if(isSuperCase){
       req.session.user.super_modCases -= 1;
