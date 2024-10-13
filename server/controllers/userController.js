@@ -192,8 +192,13 @@ export const updateUserQueuePermission = async (req, res) => {
 // update all users
 export const updateAllUsers = async (req, res) => {
     try {
-        const {coins, modCases} = req.body;
-        const result = await User.updateMany({}, { $inc: { coins, modCases }  });
+        let result = null;
+        const {coins, modCases, isSuperCase} = req.body;
+        if(isSuperCase){
+            result = await User.updateMany({}, { $inc: { coins, super_modCases: modCases }  });
+        } else {
+            result = await User.updateMany({}, { $inc: { coins, modCases }  });
+        }
     
         if(!result) return res.status(404).json({error: "No users to update"})
         res.status(200).json(result);

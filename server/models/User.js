@@ -13,6 +13,7 @@ export const userSchema = new Schema({
   allTimeReports: { type: Number, default: 0 },
   coins: { type: Number, default: 0 },
   modCases: { type: Number, default: 1 },
+  super_modCases: { type: Number, default: 0 },
   lastClaimed: { type: Date, default: null },
   queue: { type: Number, default: 0},
   skins: [{ type: Schema.Types.ObjectId, ref: "Skin" }],
