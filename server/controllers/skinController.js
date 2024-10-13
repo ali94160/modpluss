@@ -11,11 +11,15 @@ export const addSkin = async (req, res) => {
     if (req.session.user.modCases <= 0) {
       return res.status(404).json({ error: "You don't have any Modcases" });
     }
-
-    req.session.user.modCases -= 1;
-    let isModCoins = req.body.title === "Mod Coins";
+    const { isSuper } = req.body.isSuperCase
+    if(isSuper){
+      req.session.user.super_modCases -= 1;
+    } else {
+      req.session.user.modCases -= 1;
+    }
+    let isModCoins = req.body.skin.title === "Mod Coins";
     if (isModCoins) {
-      req.session.user.coins += req.body.price; // Add coins to the user's coins property
+      req.session.user.coins += req.body.skin.price; // Add coins to the user's coins property
       const user = await User.findByIdAndUpdate(
         { _id: req.session.user._id },
         { coins: req.session.user.coins, modCases: req.session.user.modCases },
@@ -23,13 +27,13 @@ export const addSkin = async (req, res) => {
       );
       await SystemLog.create({ //logging
         type: 0, 
-        text: `${req.session.user.username} just got a drop from Mod Case: x${req.body.price} ${req.body.title}`, 
+        text: `${req.session.user.username} just got a drop from ${isSuper ? "Super Mod Case" : "Mod Case"}: x${req.body.skin.price} ${req.body.skin.title}`, 
         date: newDate()
       });
       return res.status(200).json(user);
     }
     // If it's not "Mod Points", create a new skin and add it to the user's skins array
-    const skin = await Skin.create(req.body);
+    const skin = await Skin.create(req.body.skin);
     const user = await User.findByIdAndUpdate(
       { _id: req.session.user._id },
       { $push: { skins: skin._id }, modCases: req.session.user.modCases },
@@ -56,6 +60,7 @@ export const sendSkinToUser = async (req, res) => {
 
     let isModCoins = reqSkin.title === "Mod Coins";
     let isModCase = reqSkin.title === "Mod Case";
+    let isSuperModCase = reqSkin.title === "SUPER Mod Case";
 
     let reqUser = await User.findOne({ _id: reqUserId });
     if (!reqUser) return res.status(404).json({ error: "User not found" });
@@ -74,6 +79,15 @@ export const sendSkinToUser = async (req, res) => {
       const user = await User.findByIdAndUpdate(
         { _id: reqUser._id },
         { modCases: reqUser.modCases },
+        { new: true }
+      );
+      return res.status(200).json(user);
+    }
+    if (isSuperModCase) {
+      reqUser.super_modCases += reqSkin.price; // price = antal från giveaway
+      const user = await User.findByIdAndUpdate(
+        { _id: reqUser._id },
+        { super_modCases: reqUser.super_modCases },
         { new: true }
       );
       return res.status(200).json(user);
