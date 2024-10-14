@@ -51,9 +51,19 @@ export const addAchievement = async (req, res) => {
         }
 
         user.achievements.push(achievement._id);
-        if(achievement.src === "millionaire"){
-            user.modCases += 5;
+        const achievementCasesMap = {
+          "millionaire": 1,
+          "reports_1500": 1,
+          "reports_3000": 2,
+          "reports_9999": 3,  
+          "tickets_1000": 1,
+          "tickets_2500": 2,
+          "tickets_5000": 3
+        };
+        if (achievement.src in achievementCasesMap) {
+          user.super_modCases += achievementCasesMap[achievement.src];
         }
+        
         await user.save();
 
         await SystemLog.create({

@@ -11,8 +11,10 @@ export const addSkin = async (req, res) => {
     const { isSuperCase } = req.body
 
     if(isSuperCase){
+      if(req.session.user.super_modCases <= 0) return res.status(400).json({ error: "No Super Mod Cases left" })
       req.session.user.super_modCases -= 1;
     } else {
+      if(req.session.user.modCases <= 0) return res.status(400).json({ error: "No Mod Cases left" })
       req.session.user.modCases -= 1;
     }
     let isModCoins = req.body.skin.title === "Mod Coins";
@@ -39,7 +41,7 @@ export const addSkin = async (req, res) => {
     );
     await SystemLog.create({ //logging
       type: 0, 
-      text: `${req.session.user.username} just got a drop from Mod Case: ${skin.title}`, 
+      text: `${req.session.user.username} just got a drop from ${isSuperCase ? "Super Mod Case" : "Mod Case"}: ${skin.title}`, 
       date: newDate()
     });
     res.status(200).json(user);
