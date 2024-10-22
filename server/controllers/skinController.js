@@ -160,21 +160,25 @@ export const sellSkin = async (req, res) => {
     // Calculate the amount to return to the user
     const refundAmount = skin.price * 0.7;
 
-    // Remove the skin from the user's skins array and update coins
+    // Check if the skin title matches the user's avatar src
+    if (user.avatar.src === skin.title) {
+      user.avatar.src = "classic_knife-1"; // Default avatar src
+    }
+
     const updatedUser = await User.findByIdAndUpdate(
       req.session.user._id,
       {
         $pull: { skins: skinId },
         $inc: { coins: refundAmount },
+        avatar: user.avatar, // Update avatar if it was reset
       },
       { new: true }
     );
 
-    // Remove the skin from the database if needed
     await Skin.findByIdAndDelete(skinId);
-    await SystemLog.create({ //logging
-      type: 0, 
-      text: `${req.session.user.username} has sold: ${skin.title} for ${refundAmount}`, 
+    await SystemLog.create({
+      type: 0,
+      text: `${req.session.user.username} has sold: ${skin.title} for ${refundAmount}`,
       date: newDate()
     });
     res.status(200).json(updatedUser);
