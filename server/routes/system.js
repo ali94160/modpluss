@@ -17,7 +17,9 @@ import { createSystemMessage,
     updateAdminCallText, 
     deleteAdmincAllsTextById, 
     updateCasinoConfig,
-    getCasinoConfig
+    getCasinoConfig,
+    updateStats,
+    getStats
 } from "../controllers/systemController.js";
 const router = express.Router();
 
@@ -25,6 +27,10 @@ const router = express.Router();
 router.get("/", getSystemMessage);
 router.post("/", checkFlag([FLAGS.ADMIN, FLAGS.SUPER]), createSystemMessage);
 router.delete("/", checkFlag([FLAGS.ADMIN, FLAGS.SUPER]), removeSystemMessage);
+
+// Stats
+router.patch("/stats/increment/new", updateStats)
+router.get("/stats/get/all", checkFlag([FLAGS.ADMIN, FLAGS.SUPER]), getStats)
 
 // giveaway
 router.post("/star-giveaway", checkFlag([FLAGS.ADMIN, FLAGS.SUPER]), createGiveaway);
@@ -45,6 +51,6 @@ router.delete("/admin/call/text/:id", checkFlag([FLAGS.ADMIN, FLAGS.SUPER]), del
 router.put("/admin/call/text/:id", checkFlag([FLAGS.ADMIN, FLAGS.SUPER]), updateAdminCallText)
 
 // casino config
-router.get("/config/casino", getCasinoConfig) //todo: skapa metod - ska returnera true/false
-router.patch("/config/casino", checkFlag([FLAGS.ADMIN, FLAGS.SUPER]), updateCasinoConfig) //todo: skapa metod > ska loggas, vem,när > 
+router.get("/config/casino", getCasinoConfig) 
+router.patch("/config/casino", checkFlag([FLAGS.ADMIN, FLAGS.SUPER]), updateCasinoConfig) 
 export default router;

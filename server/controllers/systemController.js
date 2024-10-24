@@ -1,5 +1,5 @@
 import { User } from "../models/User.js";
-import { SystemMessage, SystemGiveaway, SystemLog, SystemAdminCall, SystemCasino } from "../models/System.js";
+import { SystemMessage, SystemGiveaway, SystemLog, SystemAdminCall, SystemCasino, SystemStats } from "../models/System.js";
 import { Skin } from "../models/Skin.js";
 
 export function newDate() {
@@ -429,5 +429,39 @@ export const updateCasinoConfig = async (req, res) => {
   } catch (error) {
     console.error('Error updating casino config:', error);
     res.status(500).json({ error: 'Failed to update casino config' }); 
+  }
+};
+
+export const updateStats = async (req, res) => {
+  const { fieldToUpdate, valueToIncrement } = req.body;
+  // Example body:
+  //   "fieldToUpdate": "totalRounds.blackjack",
+  //   "valueToIncrement": 5
+  try {
+    // Build the update query dynamically
+    const updateQuery = {};
+    updateQuery[fieldToUpdate] = valueToIncrement;
+
+    const updatedStats = await SystemStats.findOneAndUpdate(
+      {}, // Assuming you only have one system config, so you leave the filter empty
+      { $inc: updateQuery }, // Use $inc to increment the field
+      { new: true, upsert: true } 
+    );
+
+    res.status(200).json({
+      success: true,
+      data: updatedStats,
+    });
+  } catch (error) {
+    res.status(500).json({error: error.message,});
+  }
+};
+
+export const getStats = async (req, res) => {
+  try {
+    const stats = await SystemStats.findOne();
+    res.status(200).json(stats);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
   }
 };

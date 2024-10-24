@@ -288,7 +288,8 @@ export const updateBalance = async (req, res) => {
                         { username: req.session.user.username },
                         { 
                             $push: { achievements: achievement._id },
-                            $set: { coins: balanceNew }
+                            $set: { coins: balanceNew },
+                            $inc: { super_modCases: 1 }
                         }, 
                         { new: true }
                     );

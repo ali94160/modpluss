@@ -37,6 +37,71 @@ const systemCasinoSchema = new Schema({
   disableCasino: { type: Boolean }
 });
 
+const systemStatsSchema = new Schema({
+  totalCoins: {
+    totalWon: {
+      type: Number,
+      default: 0,
+    },
+    totalLost: {
+      type: Number,
+      default: 0,
+    },
+    wagered: {
+      type: Number,
+      default: 0,
+    },
+  },
+  totalRounds: {
+    blackjack: {
+      type: Number,
+      default: 0,
+    },
+    roulette: {
+      type: Number,
+      default: 0,
+    },
+    mines: {
+      type: Number,
+      default: 0,
+    },
+  },
+  adminStats: {
+    totalNameChangesSent: {
+      type: Number,
+      default: 0,
+    },
+    totalWarningsRemoved: {
+      type: Number,
+      default: 0,
+    },
+    totalLiftedTimeouts: {
+      type: Number,
+      default: 0,
+    },
+    totalReports: {
+      type: Number,
+      default: 0,
+    },
+    totalTickets: {
+      type: Number,
+      default: 0,
+    },
+    totalGiveawaysCreated: {
+      type: Number,
+      default: 0,
+    },
+    totalModCasesOpened: {
+      type: Number,
+      default: 0,
+    },
+    totalSuperModCasesOpened: {
+      type: Number,
+      default: 0,
+    },
+  },
+});
+
 export const SystemMessage = mongoose.model(
   "SystemMessage",
   systemMessageSchema
@@ -60,4 +125,9 @@ export const SystemLog = mongoose.model(
 export const SystemCasino = mongoose.model(
   "SystemCasino",
   systemCasinoSchema
+);
+
+export const SystemStats = mongoose.model(
+  "SystemStats",
+  systemStatsSchema
 );
