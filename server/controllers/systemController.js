@@ -329,30 +329,36 @@ export const checkAndPickWinner = async (req, res) => {
 
   export const getLatestDropLogs = async (req, res) => {
     try {
-      const dropLogs = await SystemLog.find({
-        text: /(\w+) just got a drop from (Super Mod Case|Mod Case): (★ .+|x\d+ .+)/ // Matches logs for drops with "★" items or "x" quantities
+      // Fetch logs for Super Mod Cases and Mod Cases separately
+      const superDropLogs = await SystemLog.find({
+        text: /(\w+) just got a drop from Super Mod Case: (★ .+|x\d+)/ // Matches logs for Super Mod Cases
       })
       .sort({ date: -1 })
       .limit(5);
   
-      const superDrops = [];
-      const drops = [];
+      const dropLogs = await SystemLog.find({
+        text: /(\w+) just got a drop from Mod Case: (★ .+|x\d+)/ // Matches logs for Mod Cases
+      })
+      .sort({ date: -1 })
+      .limit(5);
   
-      dropLogs.forEach(log => {
-        const [, user, caseType, item] = log.text.match(/(\w+) just got a drop from (Super Mod Case|Mod Case): (★ .+|x\d+ .+)/);
-  
-        const formattedLog = {
+      // Format the logs
+      const superDrops = superDropLogs.map(log => {
+        const [, user, item] = log.text.match(/(\w+) just got a drop from Super Mod Case: (★ .+|x\d+)/);
+        return {
           text: item,
           user: user,
           date: log.date,
         };
+      });
   
-        // Separate into superDrops and drops
-        if (caseType === 'Super Mod Case') {
-          superDrops.push(formattedLog);
-        } else {
-          drops.push(formattedLog);
-        }
+      const drops = dropLogs.map(log => {
+        const [, user, item] = log.text.match(/(\w+) just got a drop from Mod Case: (★ .+|x\d+)/);
+        return {
+          text: item,
+          user: user,
+          date: log.date,
+        };
       });
   
       res.status(200).json({
@@ -363,6 +369,7 @@ export const checkAndPickWinner = async (req, res) => {
       res.status(500).json({ error: error.message });
     }
   };
+  
 
   export const clearSystemLogs = async (req, res) => {
     try {
