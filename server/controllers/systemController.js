@@ -327,6 +327,43 @@ export const checkAndPickWinner = async (req, res) => {
     }
   }
 
+  export const getLatestDropLogs = async (req, res) => {
+    try {
+      const dropLogs = await SystemLog.find({
+        text: /(\w+) just got a drop from (Super Mod Case|Mod Case): (★ .+|x\d+ .+)/ // Matches logs for drops with "★" items or "x" quantities
+      })
+      .sort({ date: -1 })
+      .limit(5);
+  
+      const superDrops = [];
+      const drops = [];
+  
+      dropLogs.forEach(log => {
+        const [, user, caseType, item] = log.text.match(/(\w+) just got a drop from (Super Mod Case|Mod Case): (★ .+|x\d+ .+)/);
+  
+        const formattedLog = {
+          text: item,
+          user: user,
+          date: log.date,
+        };
+  
+        // Separate into superDrops and drops
+        if (caseType === 'Super Mod Case') {
+          superDrops.push(formattedLog);
+        } else {
+          drops.push(formattedLog);
+        }
+      });
+  
+      res.status(200).json({
+        drops,
+        superDrops,
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  };
+
   export const clearSystemLogs = async (req, res) => {
     try {
       await SystemLog.deleteMany({});

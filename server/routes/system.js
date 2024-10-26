@@ -19,7 +19,8 @@ import { createSystemMessage,
     updateCasinoConfig,
     getCasinoConfig,
     updateStats,
-    getStats
+    getStats,
+    getLatestDropLogs
 } from "../controllers/systemController.js";
 const router = express.Router();
 
@@ -42,6 +43,7 @@ router.delete("/remove", checkFlag([FLAGS.ADMIN, FLAGS.SUPER]), removeGiveaway);
 
 // logs
 router.get("/logs/get", checkFlag([FLAGS.SUPER]), getSystemLogs)
+router.get("/logs/drops/get", getLatestDropLogs)
 router.delete("/logs/delete-all", checkFlag([FLAGS.SUPER]), clearSystemLogs)
 router.post("/logs/add", addLogging)
 
