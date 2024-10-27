@@ -1,6 +1,7 @@
 import express from "express";
 import {
   addAvatarBorder,
+  addCase,
   addCoins,
   changePassword,
   createUser,
@@ -42,6 +43,7 @@ router.patch("/border/change-border", updateAvatarBorder);
 router.patch("/border/add/border", addAvatarBorder)
 
 router.patch("/give-coins/auto", addCoins);
+router.patch("/give-case/by-username/add", addCase);
 
 router.patch("/gamble/coins/new-coins", updateBalance);
 

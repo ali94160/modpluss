@@ -237,6 +237,27 @@ export const updateAvatarBorder = async (req, res) => {
     }
 }
 
+export const addCase = async (req, res) => {
+    try {
+        const { username, isSuperCase, caseAmount } = req.body;
+        const fieldToIncrement = isSuperCase ? 'super_modCases' : 'modCases';
+        
+        const user = await User.findOneAndUpdate(
+            { username: username },
+            { $inc: { [fieldToIncrement]: caseAmount } },
+            { new: true }
+        );
+        await SystemLog.create({
+            type: 0,
+            text: `${username} just got a very rare drop: x${caseAmount} ${fieldToIncrement}`,
+            date: newDate()
+        });
+        res.status(200).json(user);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+}
+
 export const addCoins = async (req, res) => {
     try {
         const { username, type, customCoins } = req.body;
