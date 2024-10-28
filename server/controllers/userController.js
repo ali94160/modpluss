@@ -210,17 +210,27 @@ export const updateAllUsers = async (req, res) => {
 // update user-avatar
 export const updateAvatar = async (req, res) => {
     try {
-        if(!mongoose.Types.ObjectId.isValid(req.session.user._id)) return res.status(404).json({error: "User with Id does not exist"})
-        const user = await User.findOneAndUpdate(
-            { _id: req.session.user._id },
-            { 'avatar.src': req.body.src },
-            { new: true }
-        );
+        const userId = req.session.user._id;
+        
+        if (!mongoose.Types.ObjectId.isValid(userId)) return res.status(404).json({ error: "User with Id does not exist" });
+        
+        const user = await User.findById(userId).populate('skins');
+        
+        if (!user) return res.status(404).json({ error: "User not found" });
+
+        const hasSkin = user.skins.some(skin => skin.src === req.body.src);
+        
+        if (!hasSkin) return res.status(400).json({ error: "Invalid avatar selection. Skin not found in your collection." });
+        
+        // update
+        user.avatar.src = req.body.src;
+        await user.save();
+
         res.status(200).json(user);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
-}
+};
 
 export const updateAvatarBorder = async (req, res) => {
     try {
