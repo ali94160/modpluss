@@ -329,22 +329,22 @@ export const checkAndPickWinner = async (req, res) => {
 
   export const getLatestDropLogs = async (req, res) => {
     try {
-      // Fetch logs for Super Mod Cases and Mod Cases separately
+      // Adjusted regex to capture all variations in Super Mod Case and Mod Case drops
       const superDropLogs = await SystemLog.find({
-        text: /(\w+) just got a drop from Super Mod Case: (★ .+|x\d+)/ // Matches logs for Super Mod Cases
+        text: /(\w+) just got a drop from Super Mod Case: (★ .+|\d+x? .+ Coins)/
       })
       .sort({ date: -1 })
       .limit(5);
   
       const dropLogs = await SystemLog.find({
-        text: /(\w+) just got a drop from Mod Case: (★ .+|x\d+)/ // Matches logs for Mod Cases
+        text: /(\w+) just got a drop from Mod Case: (★ .+|\d+x? .+ Coins)/
       })
       .sort({ date: -1 })
       .limit(5);
   
       // Format the logs
       const superDrops = superDropLogs.map(log => {
-        const [, user, item] = log.text.match(/(\w+) just got a drop from Super Mod Case: (★ .+|x\d+)/);
+        const [, user, item] = log.text.match(/(\w+) just got a drop from Super Mod Case: (★ .+|\d+x? .+ Coins)/);
         return {
           text: item,
           user: user,
@@ -353,7 +353,7 @@ export const checkAndPickWinner = async (req, res) => {
       });
   
       const drops = dropLogs.map(log => {
-        const [, user, item] = log.text.match(/(\w+) just got a drop from Mod Case: (★ .+|x\d+)/);
+        const [, user, item] = log.text.match(/(\w+) just got a drop from Mod Case: (★ .+|\d+x? .+ Coins)/);
         return {
           text: item,
           user: user,
