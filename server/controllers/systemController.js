@@ -6,36 +6,25 @@ export function newDate() {
   const date = new Date();
 
   // Offset in minutes for Central European Time (CET/CEST)
-  const offsetMinutes = date.getTimezoneOffset() + 120; // CET is UTC+1, but +60 more during daylight saving (CEST)
-  date.setMinutes(date.getMinutes() + offsetMinutes); // Adjust time to CET/CEST
-  
-  // Options to format only the date
-  const dateOptions = {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit'
-  };
-  // Options to format the time
-  const timeOptions = {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false
-  };
-  const formattedDateParts = date.toLocaleDateString(undefined, dateOptions).split(/\D/);
-  let year, month, day;
+  const offsetMinutes = date.getTimezoneOffset() + 120; // CET is UTC+1, +60 more during daylight saving (CEST)
+  date.setMinutes(date.getMinutes() + offsetMinutes);
 
-  if (formattedDateParts[0].length === 4) {
-    [year, month, day] = formattedDateParts;
-  } else {
-    [day, month, year] = formattedDateParts;
-  }
+  // Format date components manually
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+  const day = String(date.getDate()).padStart(2, '0');
   
+  // Format the time
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+
+  // Construct the formatted date and time string
   const formattedDateString = `${year}/${month}/${day}`;
-  // Format the time using the user's local settings
-  const formattedTimeString = date.toLocaleTimeString(undefined, timeOptions);
+  const formattedTimeString = `${hours}:${minutes}:${seconds}`;
   return `${formattedDateString} ${formattedTimeString}`;
 }
+
 
 
 let intervalId = null;
@@ -329,22 +318,22 @@ export const checkAndPickWinner = async (req, res) => {
 
   export const getLatestDropLogs = async (req, res) => {
     try {
-      // Updated regex to capture "Mod Coins" drops and specific items with "★" character
+      // Fetch logs for Super Mod Cases and Mod Cases separately
       const superDropLogs = await SystemLog.find({
-        text: /(\w+) just got a drop from Super Mod Case: (★ [\w\s|]+|x\d+ Mod Coins)/
+        text: /(\w+) just got a drop from Super Mod Case: (★ .+|x\d+)/ // Matches logs for Super Mod Cases
       })
       .sort({ date: -1 })
-      .limit(10);  // Limit set higher for debugging; you can set it back to 5 once verified
+      .limit(5);
   
       const dropLogs = await SystemLog.find({
-        text: /(\w+) just got a drop from Mod Case: (★ [\w\s|]+|x\d+ Mod Coins)/
+        text: /(\w+) just got a drop from Mod Case: (★ .+|x\d+)/ // Matches logs for Mod Cases
       })
       .sort({ date: -1 })
-      .limit(10);  // Limit set higher for debugging
+      .limit(5);
   
       // Format the logs
       const superDrops = superDropLogs.map(log => {
-        const [, user, item] = log.text.match(/(\w+) just got a drop from Super Mod Case: (★ [\w\s|]+|x\d+ Mod Coins)/);
+        const [, user, item] = log.text.match(/(\w+) just got a drop from Super Mod Case: (★ .+|x\d+)/);
         return {
           text: item,
           user: user,
@@ -353,7 +342,7 @@ export const checkAndPickWinner = async (req, res) => {
       });
   
       const drops = dropLogs.map(log => {
-        const [, user, item] = log.text.match(/(\w+) just got a drop from Mod Case: (★ [\w\s|]+|x\d+ Mod Coins)/);
+        const [, user, item] = log.text.match(/(\w+) just got a drop from Mod Case: (★ .+|x\d+)/);
         return {
           text: item,
           user: user,
@@ -369,7 +358,6 @@ export const checkAndPickWinner = async (req, res) => {
       res.status(500).json({ error: error.message });
     }
   };
-  
   
 
   export const clearSystemLogs = async (req, res) => {
