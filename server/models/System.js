@@ -37,6 +37,18 @@ const systemCasinoSchema = new Schema({
   disableCasino: { type: Boolean }
 });
 
+const adventSlotSchema = new Schema({
+  day: { type: Number, required: true }, // Stores the day number, 1 through 24
+  claimedBy: [{ type: Schema.Types.ObjectId, ref: 'User' }] // Stores User IDs of claimers
+});
+
+const systemAdventSchema = new Schema({
+  slots: {
+    type: [adventSlotSchema],
+    default: Array.from({ length: 24 }, (_, i) => ({ day: i + 1, claimedBy: [] }))
+  }
+});
+
 const systemStatsSchema = new Schema({
   totalCoins: {
     totalWon: {
@@ -131,3 +143,6 @@ export const SystemStats = mongoose.model(
   "SystemStats",
   systemStatsSchema
 );
+
+export const SystemAdventCalander = mongoose.model(
+  "SystemAdventCalander", systemAdventSchema);

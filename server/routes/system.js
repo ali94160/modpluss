@@ -20,7 +20,8 @@ import { createSystemMessage,
     getCasinoConfig,
     updateStats,
     getStats,
-    getLatestDropLogs
+    getLatestDropLogs,
+    getAdventReward
 } from "../controllers/systemController.js";
 const router = express.Router();
 
@@ -56,3 +57,6 @@ router.put("/admin/call/text/:id", checkFlag([FLAGS.ADMIN, FLAGS.SUPER]), update
 router.get("/config/casino", getCasinoConfig) 
 router.patch("/config/casino", checkFlag([FLAGS.ADMIN, FLAGS.SUPER]), updateCasinoConfig) 
 export default router;
+
+//Advent 
+router.patch("/advent/calander/get-reward", getAdventReward)
