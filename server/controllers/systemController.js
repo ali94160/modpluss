@@ -502,46 +502,43 @@ export const getStats = async (req, res) => {
 //Advent
 export const getAdventReward = async (req, res) => {
   try {
-    const userId = req.session.user._id; // Get user ID from session
-    const { day, reqSkin } = req.body;    // Get the day and reward from the request body
+    const userId = req.session.user._id;
+    const { day, reqSkin } = req.body;
 
-    // Find the advent calendar, which should include the slot information for all 24 days
-    const adventCalendar = await SystemAdventCalander.findOne();
+    // Attempt to find the advent calendar document
+    let adventCalendar = await SystemAdventCalander.findOne();
 
+    // If not found, create and initialize a new advent calendar document
     if (!adventCalendar) {
-      return res.status(404).json({ message: 'Advent calendar not found.' });
+      adventCalendar = new SystemAdventCalander({
+        slots: Array.from({ length: 24 }, (_, i) => ({ day: i + 1, claimedBy: [] }))
+      });
+      await adventCalendar.save();
     }
 
     // Locate the specific day slot
-    const daySlot = SystemAdventCalander.slots.find(slot => slot.day === day);
+    const daySlot = adventCalendar.slots.find(slot => slot.day === day);
     if (!daySlot) {
       return res.status(400).json({ message: 'Invalid day selected.' });
     }
 
-    // already claimed
+    // Check if the reward has already been claimed by the user
     const hasClaimed = daySlot.claimedBy.some(claimedUserId => claimedUserId.equals(userId));
     if (hasClaimed) {
       return res.status(403).json({ message: 'You have already claimed today\'s reward.' });
     }
+
+    // Handle reward claiming logic for mod cases or skins here
     let reqUser = await User.findOne({ _id: userId });
     let isModCase = reqSkin.title === "Mod Case";
     let isSuperModCase = reqSkin.title === "SUPER Mod Case";
 
-    if(isModCase) {
-      reqUser.modCases += reqSkin.price; // price = antal från giveaway
-      await User.findByIdAndUpdate(
-        { _id: reqUser._id },
-        { modCases: reqUser.modCases },
-        { new: true }
-      );
-    } 
-    else if(isSuperModCase) {
-      reqUser.super_modCases += reqSkin.price; // price = antal från giveaway
-      await User.findByIdAndUpdate(
-        { _id: reqUser._id },
-        { super_modCases: reqUser.super_modCases },
-        { new: true }
-      );
+    if (isModCase) {
+      reqUser.modCases += reqSkin.price;
+      await reqUser.save();
+    } else if (isSuperModCase) {
+      reqUser.super_modCases += reqSkin.price;
+      await reqUser.save();
     } else {
       const skin = await Skin.create(reqSkin);
       await User.findByIdAndUpdate(
@@ -551,8 +548,9 @@ export const getAdventReward = async (req, res) => {
       );
     }
 
+    // Mark the reward as claimed for this day
     daySlot.claimedBy.push(userId);
-    await SystemAdventCalander.save();
+    await adventCalendar.save();
 
     res.status(200).json({ message: 'Reward claimed successfully!' });
   } catch (error) {
@@ -560,4 +558,5 @@ export const getAdventReward = async (req, res) => {
     res.status(500).json({ message: 'An error occurred while claiming the reward.' });
   }
 };
+
 
