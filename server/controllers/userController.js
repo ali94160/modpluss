@@ -396,7 +396,12 @@ export const getTopReports = async (req, res) => {
 export const addAvatarBorder = async (req, res) => { // buying avatarBorder
     try {
         if(!req.session.user) return res.status(404).json({ error: "User not logged in" });
-        console.log(req.body, ' req body!')
+
+        // Find the user in the database and check for duplicate avatar
+        const currentUser = await User.findById(req.session.user._id);
+        const avatarExists = currentUser.avatars.some(avatar => avatar.title === req.body.title);
+        if (avatarExists) return res.status(400).json({ error: "You already own this avatar border" });
+       
         if(req.session.user.coins < req.body.price) return res.status(400).json({ error: "You don't have enough Mod Coins" });
         req.session.user.coins -= req.body.price;
 
