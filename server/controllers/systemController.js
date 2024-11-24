@@ -76,8 +76,8 @@ export const checkAndPickWinner = async (req, res) => {
     // Find the latest giveaway entry
     let giveaway = await SystemGiveaway.findOne({})
       .sort({ _id: -1 }) // Sort by _id to get the latest entry
-      .exec();
-      //.hint({ $natural: -1 }) // Force MongoDB to ignore cache and perform a fresh query
+      .exec()
+      .hint({ $natural: -1 }) // Force MongoDB to ignore cache and perform a fresh query
 
     if (giveaway && giveaway.hasWinner) {
       let winnerUsr = await User.findById({ _id: giveaway.winner }).exec();
