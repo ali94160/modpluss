@@ -19,6 +19,7 @@ const systemGiveawaySchema = new Schema({
   hasWinner: { type: Boolean, default: false },
   beenPaid: { type: Boolean, default: false },
   isDone: { type: Boolean, default: false },
+  isSuper: { type: Boolean, default: false },
 });
 
 const systemLogSchema = new Schema({

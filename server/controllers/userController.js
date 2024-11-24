@@ -100,14 +100,12 @@ export const changePassword = async (req, res) => {
         if (!user._id.equals(new mongoose.Types.ObjectId(req.session.user._id))) {
             return res.status(409).json({ error: "Unauthorized" });
         }
-        // Check if the new password meets the length requirement
         if (req.body.newPass.length < 3) {
             return res.status(407).json({ error: "Password too short" });
         }
-        // Hash the new password
+        // Hash
         const newHash = crypto.createHmac('sha256', process.env.SECRET_TOKEN).update(req.body.newPass).digest("hex");
 
-        // Update the user's password
         user.password = newHash;
         await user.save();
 
@@ -118,7 +116,6 @@ export const changePassword = async (req, res) => {
             date: newDate()
         });
 
-        // Send a success response
         res.status(200).json({ message: "Password updated successfully" });
     } catch (error) {
         res.status(400).json({ error: error.message });
