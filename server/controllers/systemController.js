@@ -78,7 +78,7 @@ export const checkAndPickWinner = async (req, res) => {
       .sort({ _id: -1 }) // Sort by _id to get the latest entry
       .exec();
       //.hint({ $natural: -1 }) // Force MongoDB to ignore cache and perform a fresh query
-
+      
     if (giveaway && giveaway.hasWinner) {
       let winnerUsr = await User.findById({ _id: giveaway.winner }).exec();
       if (intervalId) {
@@ -551,10 +551,20 @@ export const getAdventReward = async (req, res) => {
     // Mark the reward as claimed for this day
     daySlot.claimedBy.push(userId);
     await adventCalendar.save();
+    await SystemLog.create({
+      type: 0,
+      text: `${reqUser.username} has open advent calendar for day: ${day}`,
+      date: newDate(),
+    });
 
     res.status(200).json({ message: 'Reward claimed successfully!' });
   } catch (error) {
     console.error(error);
+    await SystemLog.create({
+      type: 1,
+      text: `${reqUser?.username} - ${error?.message}`,
+      date: newDate(),
+    });
     res.status(500).json({ message: 'An error occurred while claiming the reward.' });
   }
 };
