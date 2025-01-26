@@ -563,7 +563,7 @@ export const getAdventReward = async (req, res) => {
     await SystemLog.create({
       type: 1,
       text: `${reqUser?.username} - ${error?.message}`,
-      date: newDate(),
+      date: newDate(), 
     });
     res.status(500).json({ message: 'An error occurred while claiming the reward.' });
   }
