@@ -18,11 +18,7 @@ export const watchlistSchema = new Schema({
   gathers_played: { type: Number, default: 0 },
   tickets: { type: Number, default: 0 },
   username_history: { type: Number, default: 0 },
-  logs: [
-    {
-      text: { type: String },
-    },
-  ],
+  logs: [{ type: String }]
 });
 
 export const Watchlist = mongoose.model("Watchlist", watchlistSchema);
