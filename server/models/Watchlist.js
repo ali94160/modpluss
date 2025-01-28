@@ -17,10 +17,10 @@ export const watchlistSchema = new Schema({
   matches_played: { type: Number, default: 0 },
   gathers_played: { type: Number, default: 0 },
   tickets: { type: Number, default: 0 },
-  old_usernames: { type: Number, default: 0 },
+  username_history: { type: Number, default: 0 },
   logs: [
     {
-      text: { type: String, required: true },
+      text: { type: String },
     },
   ],
 });
