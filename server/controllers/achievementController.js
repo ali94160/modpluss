@@ -1,5 +1,5 @@
 import { Achievement } from '../models/Achievement.js';
-import { SystemLog } from '../models/system.js';
+import { SystemLog } from '../models/System.js';
 import { User } from '../models/User.js';
 import { newDate } from './systemController.js';
 

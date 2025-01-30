@@ -1,4 +1,4 @@
-import { SystemLog } from "../models/system.js";
+import { SystemLog } from "../models/System.js";
 import { Watchlist } from "../models/Watchlist.js";
 import { newDate } from "./systemController.js"
 

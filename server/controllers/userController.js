@@ -2,7 +2,7 @@ import { User } from "../models/User.js";
 import mongoose from "mongoose";
 import crypto from "crypto"
 
-import { SystemLog } from "../models/system.js";
+import { SystemLog } from "../models/System.js";
 import { Achievement} from "../models/Achievement.js"
 import { newDate } from "./systemController.js";
 
