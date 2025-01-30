@@ -5,5 +5,5 @@ const router = express.Router();
 
 router.patch("/", updateWatchlist);
 router.get("/", getWatchlist);
-router.delete("/", deleteWatchlistUser);
+router.patch("/removeUser", deleteWatchlistUser);
 export default router;

@@ -39,7 +39,7 @@ export const getWatchlist = async (req, res) => {
         return res.status(400).json({ error: "User ID is required" });
       }
   
-      const deletedUser = await Watchlist.findOneAndDelete({ user: id });
+      const deletedUser = await Watchlist.findOneAndDelete({ user: +id });
   
       if (!deletedUser) {
         return res.status(404).json({ error: "User not found in the watchlist" });

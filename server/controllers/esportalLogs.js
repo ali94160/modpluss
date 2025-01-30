@@ -1,5 +1,5 @@
 import { CanceledMatch, SmurfLog } from "../models/EsportalLog.js";
-import { SystemLog } from "../models/System.js";
+import { SystemLog } from "../models/system.js";
 import { newDate } from "./systemController.js";
 
 // CANCEL MATCHES

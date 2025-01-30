@@ -3,7 +3,7 @@
 // För hämtning vid store (allSkins kommer ha dubeletter, ta bara ut 1 av varje.) + mina skins OK med dubeltter, har olika _ids
 import { Skin } from "../models/Skin.js";
 import { User } from "../models/User.js";
-import { SystemLog } from "../models/System.js"; // PÅ ALLA
+import { SystemLog } from "../models/system.js"; // PÅ ALLA
 import { newDate } from "./systemController.js";
 
 export const addSkin = async (req, res) => {
