@@ -2,7 +2,7 @@ import { User } from "../models/User.js";
 import mongoose from "mongoose";
 import crypto from "crypto"
 import { newDate } from "./systemController.js";
-import { SystemLog } from "../models/System.js";
+import { SystemLog } from "../models/system.js";
 import { Achievement} from "../models/Achievement.js"
 
 const MOD_TYPE = {

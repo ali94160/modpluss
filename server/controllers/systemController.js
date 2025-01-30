@@ -1,5 +1,5 @@
 import { User } from "../models/User.js";
-import { SystemMessage, SystemGiveaway, SystemLog, SystemAdminCall, SystemCasino, SystemStats, SystemAdventCalander } from "../models/System.js";
+import { SystemMessage, SystemGiveaway, SystemLog, SystemAdminCall, SystemCasino, SystemStats, SystemAdventCalander } from "../models/system.js";
 import { Skin } from "../models/Skin.js";
 
 export function newDate() {
